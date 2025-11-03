@@ -1,0 +1,51 @@
+[flake8]
+# Flake8 Configuration
+
+# Maximum line length
+max-line-length = 127
+
+# Maximum cyclomatic complexity
+max-complexity = 10
+
+# Exclude directories
+exclude =
+    .git,
+    __pycache__,
+    venv,
+    env,
+    .venv,
+    .eggs,
+    *.egg,
+    build,
+    dist,
+    htmlcov,
+    .pytest_cache,
+    allure-results,
+    allure-report,
+    screenshots,
+    logs,
+    reports
+
+# Ignore specific errors
+ignore =
+    E203,  # whitespace before ':'
+    E501,  # line too long (handled by black)
+    W503,  # line break before binary operator
+    W504,  # line break after binary operator
+
+# Error codes to always report
+select = E,W,F,C
+
+# Per-file ignores
+per-file-ignores =
+    __init__.py:F401
+    features/environment.py:F401
+
+# Show source code
+show-source = True
+
+# Show statistics
+statistics = True
+
+# Count errors
+count = True
