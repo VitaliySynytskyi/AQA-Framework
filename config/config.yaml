@@ -1,0 +1,39 @@
+# AQA Framework Configuration
+
+# Browser settings
+browser:
+  name: chrome  # chrome, firefox, edge
+  headless: false
+  window_size: 1920x1080
+  implicit_wait: 10
+  page_load_timeout: 30
+
+# Test site configuration
+site:
+  base_url: https://rozetka.com.ua
+  supported_languages:
+    - uk
+    - ru
+
+# Timeouts
+timeouts:
+  short: 5
+  medium: 10
+  long: 30
+  
+# Screenshots
+screenshots:
+  on_failure: true
+  on_success: false
+  path: screenshots/
+
+# Logging
+logging:
+  level: INFO  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+  file: logs/test_execution.log
+
+# Reporting
+reporting:
+  allure_results_dir: allure-results
+  pytest_html_report: reports/report.html
