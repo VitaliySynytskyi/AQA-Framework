@@ -86,9 +86,7 @@ class BasePage:
             logger.warning(f"No elements found: {locator}")
             return []
 
-    def wait_for_element_visible(
-        self, locator: Tuple[str, str], timeout: Optional[int] = None
-    ):
+    def wait_for_element_visible(self, locator: Tuple[str, str], timeout: Optional[int] = None):
         """
         Wait for element to be visible (present + displayed)
 
@@ -101,9 +99,7 @@ class BasePage:
         """
         wait_time = timeout or self.timeouts.get("medium", 10)
         try:
-            element = WebDriverWait(self.driver, wait_time).until(
-                EC.visibility_of_element_located(locator)
-            )
+            element = WebDriverWait(self.driver, wait_time).until(EC.visibility_of_element_located(locator))
             logger.debug(f"Element visible: {locator}")
             return element
         except TimeoutException:

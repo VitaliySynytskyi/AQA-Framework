@@ -52,18 +52,18 @@ class TestHomePage:
         # search_product now calls search_product_with_enter
         mock_search_with_enter.assert_called_once_with(query)
 
-    @patch("pages.home_page.HomePage.find_element")
+    @patch("pages.home_page.HomePage.wait_for_element_visible")
     @patch("pages.home_page.HomePage.press_key")
-    def test_search_product_with_enter(self, mock_press, mock_find, home_page):
+    def test_search_product_with_enter(self, mock_press, mock_wait, home_page):
         """Test searching with Enter key"""
         query = "phone"
         mock_element = MagicMock()
-        mock_find.return_value = mock_element
+        mock_wait.return_value = mock_element
 
         home_page.search_product_with_enter(query)
 
-        # Should find element, clear it, and press Enter
-        mock_find.assert_called_with(home_page.SEARCH_INPUT)
+        # Should wait for element visibility, clear it, and press Enter
+        mock_wait.assert_called_with(home_page.SEARCH_INPUT, timeout=20)
         mock_element.clear.assert_called_once()
         mock_press.assert_called_once_with(home_page.SEARCH_INPUT, "ENTER")
 
