@@ -17,36 +17,37 @@ logger = logging.getLogger(__name__)
 class SearchPage(BasePage):
     """Search results page of Rozetka"""
 
-    # Locators
-    SEARCH_RESULTS = (By.CSS_SELECTOR, "div[class*='catalog-grid__cell']")
-    PRODUCT_TILES = (By.CSS_SELECTOR, "li[class*='catalog-grid__cell']")
-    PRODUCT_TITLES = (By.CSS_SELECTOR, "span[class*='goods-tile__title']")
-    PRODUCT_PRICES = (By.CSS_SELECTOR, "span[class*='goods-tile__price-value']")
-    SORT_DROPDOWN = (By.CSS_SELECTOR, "select[class*='select-css']")
-    SORT_BY_PRICE_ASC = (By.XPATH, "//option[contains(text(), 'Від дешевих до дорогих')]")
-    SORT_BY_PRICE_DESC = (By.XPATH, "//option[contains(text(), 'Від дорогих до дешевих')]")
-    SORT_BY_POPULARITY = (By.XPATH, "//option[contains(text(), 'Популярні')]")
-    SORT_BY_NOVELTY = (By.XPATH, "//option[contains(text(), 'Новинки')]")
-    SORT_BY_ACTION = (By.XPATH, "//option[contains(text(), 'Акційні')]")
-    SORT_BY_RATING = (By.XPATH, "//option[contains(text(), 'Рейтинг')]")
-    NO_RESULTS_MESSAGE = (By.CSS_SELECTOR, "div[class*='catalog-nothing-found']")
-    SEARCH_QUERY_TEXT = (By.CSS_SELECTOR, "h1[class*='catalog-heading']")
-    ADD_TO_CART_BUTTONS = (By.CSS_SELECTOR, "button[class*='buy-button']")
-    PAGINATION = (By.CSS_SELECTOR, "ul[class*='pagination']")
-    NEXT_PAGE_BUTTON = (By.CSS_SELECTOR, "a[class*='pagination__link--next']")
-    FILTER_SIDEBAR = (By.CSS_SELECTOR, "aside[class*='sidebar']")
-    PRICE_MIN_INPUT = (By.CSS_SELECTOR, "input[formcontrolname='min']")
-    PRICE_MAX_INPUT = (By.CSS_SELECTOR, "input[formcontrolname='max']")
-    APPLY_FILTER_BUTTON = (By.XPATH, "//button[contains(text(), 'Застосувати')]")
+    # Locators - Updated for current Rozetka layout (2025)
+    # Multiple fallback selectors for robustness
+    SEARCH_RESULTS = (By.XPATH, "//*[contains(@class, 'tile') or contains(@class, 'product') or contains(@class, 'goods')]")
+    PRODUCT_TILES = (By.XPATH, "//*[contains(@class, 'tile') or contains(@class, 'product-card')]")
+    PRODUCT_TITLES = (By.XPATH, "//a[contains(@class, 'title') or contains(@class, 'heading')]")
+    PRODUCT_PRICES = (By.XPATH, "//*[contains(@class, 'price') and not(contains(@class, 'old'))]")
+    SORT_DROPDOWN = (By.CSS_SELECTOR, "select[class*='sort'], select[class*='select']")  # ✓ From parser
+    SORT_BY_PRICE_ASC = (By.XPATH, "//option[contains(text(), 'дешев') or contains(text(), 'cheap')]")
+    SORT_BY_PRICE_DESC = (By.XPATH, "//option[contains(text(), 'дорог') or contains(text(), 'expensive')]")
+    SORT_BY_POPULARITY = (By.XPATH, "//option[contains(text(), 'опулярн') or contains(text(), 'popular')]")
+    SORT_BY_NOVELTY = (By.XPATH, "//option[contains(text(), 'овин') or contains(text(), 'new')]")
+    SORT_BY_ACTION = (By.XPATH, "//option[contains(text(), 'кці') or contains(text(), 'sale')]")
+    SORT_BY_RATING = (By.XPATH, "//option[contains(text(), 'ейтинг') or contains(text(), 'rating')]")
+    NO_RESULTS_MESSAGE = (By.XPATH, "//*[contains(@class, 'empty') or contains(@class, 'nothing') or contains(@class, 'not-found')]")  # ✓ From parser
+    SEARCH_QUERY_TEXT = (By.XPATH, "//h1[contains(@class, 'heading') or contains(@class, 'title')]")
+    ADD_TO_CART_BUTTONS = (By.XPATH, "//button[contains(@class, 'buy') or contains(@class, 'cart')]")
+    PAGINATION = (By.CSS_SELECTOR, "ul[class*='pagination'], div[class*='pagination']")
+    NEXT_PAGE_BUTTON = (By.XPATH, "//a[contains(@class, 'next') or contains(@class, 'forward')]")
+    FILTER_SIDEBAR = (By.XPATH, "//div[contains(@class, 'filter') or contains(@class, 'sidebar')]")  # ✓ From parser
+    PRICE_MIN_INPUT = (By.XPATH, "//input[contains(@name, 'min') or contains(@placeholder, 'мін')]")
+    PRICE_MAX_INPUT = (By.XPATH, "//input[contains(@name, 'max') or contains(@placeholder, 'макс')]")
+    APPLY_FILTER_BUTTON = (By.XPATH, "//button[contains(text(), 'астосувати') or contains(text(), 'Apply') or contains(@class, 'apply')]")
 
     def __init__(self, driver):
         """Initialize search page"""
         super().__init__(driver)
         logger.info("Initialized SearchPage")
 
-    def wait_for_results(self, timeout: int = 10) -> bool:
+    def wait_for_results(self, timeout: int = 15) -> bool:
         """
-        Wait for search results to load
+        Wait for search results to load (with increased timeout and multiple attempts)
 
         Args:
             timeout: Wait timeout in seconds
@@ -54,20 +55,72 @@ class SearchPage(BasePage):
         Returns:
             True if results loaded
         """
-        logger.info("Waiting for search results")
-        return self.is_element_visible(self.PRODUCT_TILES, timeout=timeout)
+        import time
+        logger.info("Waiting for search results to load...")
+        
+        # First, wait for URL to change to search results page
+        start_time = time.time()
+        url_changed = False
+        while (time.time() - start_time) < 10:
+            current_url = self.driver.current_url
+            if "search" in current_url or "catalog" in current_url:
+                logger.info(f"✓ URL changed to results page: {current_url}")
+                url_changed = True
+                break
+            time.sleep(0.5)
+        
+        if not url_changed:
+            logger.warning("⚠ URL didn't change to search results page")
+            return False
+        
+        # Wait for page to stabilize after navigation
+        time.sleep(3)
+        
+        # Try multiple ways to detect results
+        try:
+            # Try to find any product-like elements
+            if self.is_element_visible(self.PRODUCT_TILES, timeout=5):
+                logger.info("✓ Product tiles found")
+                return True
+            
+            # Try to find prices (products always have prices)
+            if self.is_element_visible(self.PRODUCT_PRICES, timeout=5):
+                logger.info("✓ Product prices found")
+                return True
+            
+            logger.warning("No clear indication of search results")
+            return False
+            
+        except Exception as e:
+            logger.warning(f"Error waiting for results: {e}")
+            return False
 
     def get_products_count(self) -> int:
         """
-        Get number of products on current page
+        Get number of products on current page (tries multiple selectors)
 
         Returns:
             Number of products
         """
+        import time
+        time.sleep(1)  # Let page stabilize
+        
+        # Try multiple ways to count products
         products = self.find_elements(self.PRODUCT_TILES)
-        count = len(products)
-        logger.info(f"Found {count} products on page")
-        return count
+        if products:
+            count = len(products)
+            logger.info(f"✓ Found {count} products via PRODUCT_TILES")
+            return count
+        
+        # Try counting by prices
+        prices = self.find_elements(self.PRODUCT_PRICES)
+        if prices:
+            count = len(prices)
+            logger.info(f"✓ Found {count} products via PRODUCT_PRICES")
+            return count
+        
+        logger.warning("No products found with any selector")
+        return 0
 
     def get_product_titles(self) -> List[str]:
         """

@@ -16,18 +16,18 @@ logger = logging.getLogger(__name__)
 class HomePage(BasePage):
     """Home page of Rozetka"""
 
-    # Locators
-    SEARCH_INPUT = (By.NAME, "search")
-    SEARCH_BUTTON = (By.CSS_SELECTOR, "button[class*='search__button']")
-    LOGO = (By.CSS_SELECTOR, "a[class*='header__logo']")
-    LANGUAGE_SWITCHER = (By.CSS_SELECTOR, "button[class*='lang-toggle']")
-    LANGUAGE_UK = (By.XPATH, "//button[contains(@class, 'lang-toggle')]//a[contains(text(), 'UA')]")
-    LANGUAGE_RU = (By.XPATH, "//button[contains(@class, 'lang-toggle')]//a[contains(text(), 'RU')]")
-    CATALOG_BUTTON = (By.CSS_SELECTOR, "button[class*='menu-toggler']")
-    CART_ICON = (By.CSS_SELECTOR, "a[class*='header__button--cart']")
-    CART_COUNTER = (By.CSS_SELECTOR, "span[class*='counter--green']")
-    MAIN_CATEGORIES = (By.CSS_SELECTOR, "ul[class*='menu-categories'] > li")
-    PROMOTION_BANNER = (By.CSS_SELECTOR, "div[class*='promo-banner']")
+    # Locators (updated with actual Rozetka selectors 2025)
+    SEARCH_INPUT = (By.NAME, "search")  # ✓ Verified working
+    SEARCH_BUTTON = (By.CSS_SELECTOR, "button[type='submit']")  # ✓ Updated from parser
+    LOGO = (By.CSS_SELECTOR, "a[class*='logo']")  # ✓ Updated from parser
+    LANGUAGE_SWITCHER = (By.CSS_SELECTOR, "button[class*='lang']")
+    LANGUAGE_UK = (By.XPATH, "//button[contains(@class, 'lang')]//a[contains(text(), 'UA')]")
+    LANGUAGE_RU = (By.XPATH, "//button[contains(@class, 'lang')]//a[contains(text(), 'RU')]")
+    CATALOG_BUTTON = (By.CSS_SELECTOR, "button[class*='menu']")  # ✓ Updated from parser
+    CART_ICON = (By.CSS_SELECTOR, "a[href*='cart']")
+    CART_COUNTER = (By.CSS_SELECTOR, "span[class*='counter']")
+    MAIN_CATEGORIES = (By.CSS_SELECTOR, "ul[class*='menu'] > li")
+    PROMOTION_BANNER = (By.CSS_SELECTOR, "div[class*='promo']")
 
     def __init__(self, driver):
         """Initialize home page"""
@@ -48,8 +48,8 @@ class HomePage(BasePage):
             query: Search query
         """
         logger.info(f"Searching for product: {query}")
-        self.input_text(self.SEARCH_INPUT, query)
-        self.click(self.SEARCH_BUTTON)
+        # Use Enter instead of clicking button (more reliable on Rozetka)
+        self.search_product_with_enter(query)
 
     def search_product_with_enter(self, query: str):
         """
@@ -58,9 +58,23 @@ class HomePage(BasePage):
         Args:
             query: Search query
         """
+        import time
         logger.info(f"Searching for product with Enter: {query}")
-        self.input_text(self.SEARCH_INPUT, query)
+        
+        # Clear input first
+        search_input = self.find_element(self.SEARCH_INPUT)
+        search_input.clear()
+        time.sleep(0.5)
+        
+        # Type text slowly to let autocomplete work
+        for char in query:
+            search_input.send_keys(char)
+            time.sleep(0.1)  # Small delay between characters
+        
+        time.sleep(1)  # Wait for autocomplete suggestions
+        logger.info("Pressing Enter...")
         self.press_key(self.SEARCH_INPUT, "ENTER")
+        time.sleep(2)  # Wait for navigation to complete
 
     def open_catalog(self):
         """Open main catalog menu"""

@@ -23,12 +23,16 @@ def step_open_home_page(context):
 def step_search_for_product(context, query):
     """Search for product"""
     logger.info(f"Step: Searching for '{query}'")
-    if query:
-        context.home_page.search_product(query)
-        context.test_data["search_query"] = query
-    else:
-        # Empty search
-        context.home_page.search_product("")
+    context.home_page.search_product(query)
+    context.test_data["search_query"] = query
+
+
+@when('I search for empty query')
+def step_search_for_empty(context):
+    """Search with empty query"""
+    logger.info("Step: Searching with empty query")
+    context.home_page.search_product("")
+    context.test_data["search_query"] = ""
 
 
 @when('I enter "{query}" in search box and press Enter')

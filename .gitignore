@@ -46,6 +46,13 @@ htmlcov/
 # Screenshots
 screenshots/
 
+# Temporary files
+*.tmp
+*.bak
+*~
+progress.output
+discovered_selectors.json
+
 # Environment variables
 .env
 

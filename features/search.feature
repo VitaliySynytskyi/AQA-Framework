@@ -19,7 +19,7 @@ Feature: Product Search
     And product titles should contain "iPhone"
 
   Scenario: Search with empty query
-    When I search for ""
+    When I search for empty query
     Then I should remain on the home page
 
   Scenario: Search for non-existent product

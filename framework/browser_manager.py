@@ -73,30 +73,40 @@ class BrowserManager:
         window_size = self.browser_config.get("window_size", "1920x1080")
         options.add_argument(f"--window-size={window_size}")
 
-        # Try to use system-installed chromedriver first (for CI/CD)
+        # Try multiple approaches to start Chrome
         service = None
+        
         try:
-            # Check if chromedriver is in system PATH
+            # 1. Try system PATH first (for CI/CD and manual installs)
             chromedriver_path = shutil.which("chromedriver")
             if chromedriver_path:
                 logger.info(f"Using system ChromeDriver from: {chromedriver_path}")
                 service = ChromeService(chromedriver_path)
-            else:
-                # Fallback to webdriver-manager
-                logger.info("System ChromeDriver not found, using webdriver-manager")
-                driver_path = ChromeDriverManager().install()
-                logger.info(f"ChromeDriver installed at: {driver_path}")
-                service = ChromeService(driver_path)
+                return webdriver.Chrome(service=service, options=options)
         except Exception as e:
-            logger.warning(f"Error setting up ChromeDriver: {e}")
-            # Last resort: try without specifying service (use system default)
-            try:
-                return webdriver.Chrome(options=options)
-            except Exception as e2:
-                logger.error(f"Failed to start Chrome: {e2}")
-                raise
+            logger.debug(f"System ChromeDriver not found: {e}")
 
-        return webdriver.Chrome(service=service, options=options)
+        try:
+            # 2. Let Selenium Manager handle it (Selenium 4.6+)
+            logger.info("Using Selenium Manager to handle ChromeDriver")
+            return webdriver.Chrome(options=options)
+        except Exception as e:
+            logger.debug(f"Selenium Manager failed: {e}")
+
+        try:
+            # 3. Fallback to webdriver-manager (only on non-Windows or if above failed)
+            import platform
+            if platform.system() != "Windows":
+                logger.info("Trying webdriver-manager")
+                driver_path = ChromeDriverManager().install()
+                service = ChromeService(driver_path)
+                return webdriver.Chrome(service=service, options=options)
+        except Exception as e:
+            logger.debug(f"webdriver-manager failed: {e}")
+
+        # 4. Last resort - try without service
+        logger.warning("All methods failed, trying Chrome without explicit service")
+        return webdriver.Chrome(options=options)
 
     def _start_firefox(self) -> webdriver.Firefox:
         """Start Firefox browser"""
