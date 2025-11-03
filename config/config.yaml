@@ -5,8 +5,8 @@ browser:
   name: chrome  # chrome, firefox, edge
   headless: false
   window_size: 1920x1080
-  implicit_wait: 10
-  page_load_timeout: 30
+  implicit_wait: 20  # Increased for CI/CD stability
+  page_load_timeout: 60  # Increased for slow environments
 
 # Test site configuration
 site:
@@ -18,8 +18,8 @@ site:
 # Timeouts
 timeouts:
   short: 5
-  medium: 10
-  long: 30
+  medium: 20  # Increased for CI/CD headless mode
+  long: 45  # Increased for slow page loads
   
 # Screenshots
 screenshots:

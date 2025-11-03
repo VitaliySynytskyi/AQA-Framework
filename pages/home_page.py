@@ -18,7 +18,10 @@ class HomePage(BasePage):
 
     # Locators (updated with actual Rozetka selectors 2025)
     SEARCH_INPUT = (By.NAME, "search")  # ✓ Verified working
-    SEARCH_BUTTON = (By.CSS_SELECTOR, "button[type='submit']")  # ✓ Updated from parser
+    SEARCH_BUTTON = (
+        By.CSS_SELECTOR,
+        "rz-search-suggest form button[type='submit']",
+    )  # ✓ Nov 2025 - more specific
     LOGO = (By.CSS_SELECTOR, "a[class*='logo']")  # ✓ Updated from parser
     LANGUAGE_SWITCHER = (By.CSS_SELECTOR, "button[class*='lang']")
     LANGUAGE_UK = (By.XPATH, "//button[contains(@class, 'lang')]//a[contains(text(), 'UA')]")
@@ -62,8 +65,8 @@ class HomePage(BasePage):
 
         logger.info(f"Searching for product with Enter: {query}")
 
-        # Clear input first
-        search_input = self.find_element(self.SEARCH_INPUT)
+        # Wait for search input to be visible and interactable
+        search_input = self.wait_for_element_visible(self.SEARCH_INPUT, timeout=20)
         search_input.clear()
         time.sleep(0.5)
 
