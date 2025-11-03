@@ -5,10 +5,10 @@ This module contains unit tests for the HomePage class.
 """
 
 import pytest
-from unittest.mock import Mock, MagicMock, patch
 from pathlib import Path
 import sys
 from selenium.webdriver.common.by import By
+from unittest.mock import Mock, patch
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 

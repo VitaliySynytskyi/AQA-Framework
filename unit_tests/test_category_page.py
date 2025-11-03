@@ -5,9 +5,9 @@ This module contains unit tests for the CategoryPage class.
 """
 
 import pytest
-from unittest.mock import Mock, MagicMock, patch
 from pathlib import Path
 import sys
+from unittest.mock import Mock, patch
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 

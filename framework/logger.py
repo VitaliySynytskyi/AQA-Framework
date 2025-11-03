@@ -5,7 +5,6 @@ This module provides centralized logging configuration and utilities.
 """
 
 import logging
-import os
 from pathlib import Path
 from datetime import datetime
 import colorlog

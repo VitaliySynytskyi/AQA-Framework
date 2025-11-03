@@ -6,13 +6,11 @@ This module contains unit tests for the ConfigManager class.
 
 import pytest
 import os
-from unittest.mock import patch, mock_open, MagicMock
 from pathlib import Path
-import yaml
+import sys
+from unittest.mock import patch, mock_open
 
 # Add parent directory to path for imports
-import sys
-
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from framework.config_manager import ConfigManager

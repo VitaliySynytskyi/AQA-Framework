@@ -5,11 +5,11 @@ This module contains unit tests for the BasePage class.
 """
 
 import pytest
-from unittest.mock import Mock, MagicMock, patch
 from pathlib import Path
 import sys
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
+from unittest.mock import Mock, patch
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
@@ -242,5 +242,5 @@ class TestBasePage:
         script = "return document.title;"
         mock_driver.execute_script.return_value = "Test Title"
 
-        result = base_page.execute_script(script)
+        base_page.execute_script(script)
         mock_driver.execute_script.assert_called_once_with(script)

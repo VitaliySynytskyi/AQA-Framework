@@ -91,9 +91,23 @@ jobs:
     
     - name: Install ChromeDriver
       run: |
-        CHROME_VERSION=$(google-chrome --version | cut -d ' ' -f 3 | cut -d '.' -f 1)
+        # Get Chrome version
+        CHROME_VERSION=$(google-chrome --version | awk '{print $3}')
         echo "Chrome version: $CHROME_VERSION"
-        wget -q "https://edgedl.me.gstatic.com/edgedl/chrome/chrome-for-testing/120.0.6099.109/linux64/chromedriver-linux64.zip"
+        
+        # Get matching ChromeDriver version from Chrome for Testing API
+        CHROMEDRIVER_URL=$(curl -s "https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json" | \
+          jq -r --arg version "$CHROME_VERSION" '.versions[] | select(.version == $version) | .downloads.chromedriver[] | select(.platform == "linux64") | .url' | head -1)
+        
+        # Fallback to latest stable if exact version not found
+        if [ -z "$CHROMEDRIVER_URL" ]; then
+          echo "Exact version not found, using latest stable"
+          CHROMEDRIVER_URL=$(curl -s "https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json" | \
+            jq -r '.channels.Stable.downloads.chromedriver[] | select(.platform == "linux64") | .url')
+        fi
+        
+        echo "Downloading ChromeDriver from: $CHROMEDRIVER_URL"
+        wget -q "$CHROMEDRIVER_URL" -O chromedriver-linux64.zip
         unzip chromedriver-linux64.zip
         sudo mv chromedriver-linux64/chromedriver /usr/local/bin/chromedriver
         sudo chmod +x /usr/local/bin/chromedriver
@@ -125,6 +139,7 @@ jobs:
     - name: Upload BDD test results
       uses: actions/upload-artifact@v4
       if: always()
+      continue-on-error: true
       with:
         name: bdd-test-results
         path: |
