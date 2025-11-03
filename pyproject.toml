@@ -25,3 +25,20 @@ extend-exclude = '''
   | reports
 )/
 '''
+
+[tool.bandit]
+exclude_dirs = [
+    "venv",
+    "env",
+    ".venv",
+    ".eggs",
+    "htmlcov",
+    ".pytest_cache",
+    "allure-results",
+    "allure-report",
+    "screenshots",
+    "logs",
+    "reports"
+]
+# Skip B101 (assert_used) - asserts are required in unit tests
+skips = ["B101"]

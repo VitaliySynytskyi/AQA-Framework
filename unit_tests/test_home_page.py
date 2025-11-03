@@ -121,7 +121,8 @@ class TestHomePage:
         home_page.change_language('ru')
         assert mock_click.call_count == 2
     
-    def test_change_language_invalid(self, home_page):
+    @patch('pages.home_page.HomePage.click')
+    def test_change_language_invalid(self, mock_click, home_page):
         """Test changing to invalid language raises error"""
         with pytest.raises(ValueError):
             home_page.change_language('invalid')

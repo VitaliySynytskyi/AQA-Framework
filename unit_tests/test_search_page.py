@@ -117,7 +117,8 @@ class TestSearchPage:
         search_page.sort_by('popularity')
         assert mock_click.call_count == 2
     
-    def test_sort_by_invalid_option(self, search_page):
+    @patch('pages.search_page.SearchPage.click')
+    def test_sort_by_invalid_option(self, mock_click, search_page):
         """Test sorting with invalid option raises error"""
         with pytest.raises(ValueError):
             search_page.sort_by('invalid_option')

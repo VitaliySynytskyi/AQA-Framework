@@ -156,7 +156,8 @@ class TestCategoryPage:
         category_page.sort_products('popularity')
         assert mock_click.call_count == 2
     
-    def test_sort_products_invalid_option(self, category_page):
+    @patch('pages.category_page.CategoryPage.click')
+    def test_sort_products_invalid_option(self, mock_click, category_page):
         """Test sorting with invalid option"""
         with pytest.raises(ValueError):
             category_page.sort_products('invalid_sort')

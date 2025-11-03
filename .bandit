@@ -1,0 +1,23 @@
+[tool.bandit]
+# Bandit Security Configuration
+exclude_dirs = [
+    "venv",
+    "env",
+    ".venv",
+    ".eggs",
+    "htmlcov",
+    ".pytest_cache",
+    "allure-results",
+    "allure-report",
+    "screenshots",
+    "logs",
+    "reports"
+]
+
+# Skip assert warnings in test files (B101)
+# Asserts are expected and required in test files
+skips = ["B101"]
+
+# Tests are low severity and can be reviewed separately
+[tool.bandit.assert_used]
+skips = ["**/test_*.py", "**/tests/**"]
