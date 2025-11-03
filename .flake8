@@ -36,6 +36,7 @@ select = E,W,F,C
 per-file-ignores =
     __init__.py:F401
     features/environment.py:F401
+    unit_tests/*.py:E402
 
 # Show source code
 show-source = True
