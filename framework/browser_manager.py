@@ -16,6 +16,7 @@ from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from selenium.webdriver.edge.options import Options as EdgeOptions
 from typing import Optional
 import logging
+import shutil
 
 from framework.config_manager import config
 
@@ -72,15 +73,28 @@ class BrowserManager:
         window_size = self.browser_config.get("window_size", "1920x1080")
         options.add_argument(f"--window-size={window_size}")
 
-        # Install chromedriver with better error handling
+        # Try to use system-installed chromedriver first (for CI/CD)
+        service = None
         try:
-            driver_path = ChromeDriverManager().install()
-            logger.info(f"ChromeDriver installed at: {driver_path}")
-            service = ChromeService(driver_path)
+            # Check if chromedriver is in system PATH
+            chromedriver_path = shutil.which("chromedriver")
+            if chromedriver_path:
+                logger.info(f"Using system ChromeDriver from: {chromedriver_path}")
+                service = ChromeService(chromedriver_path)
+            else:
+                # Fallback to webdriver-manager
+                logger.info("System ChromeDriver not found, using webdriver-manager")
+                driver_path = ChromeDriverManager().install()
+                logger.info(f"ChromeDriver installed at: {driver_path}")
+                service = ChromeService(driver_path)
         except Exception as e:
-            logger.warning(f"Error with ChromeDriverManager: {e}")
-            # Fallback to system chromedriver
-            service = ChromeService()
+            logger.warning(f"Error setting up ChromeDriver: {e}")
+            # Last resort: try without specifying service (use system default)
+            try:
+                return webdriver.Chrome(options=options)
+            except Exception as e2:
+                logger.error(f"Failed to start Chrome: {e2}")
+                raise
 
         return webdriver.Chrome(service=service, options=options)
 
