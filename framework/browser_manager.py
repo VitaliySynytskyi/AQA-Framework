@@ -75,7 +75,7 @@ class BrowserManager:
 
         # Try multiple approaches to start Chrome
         service = None
-        
+
         try:
             # 1. Try system PATH first (for CI/CD and manual installs)
             chromedriver_path = shutil.which("chromedriver")
@@ -96,6 +96,7 @@ class BrowserManager:
         try:
             # 3. Fallback to webdriver-manager (only on non-Windows or if above failed)
             import platform
+
             if platform.system() != "Windows":
                 logger.info("Trying webdriver-manager")
                 driver_path = ChromeDriverManager().install()

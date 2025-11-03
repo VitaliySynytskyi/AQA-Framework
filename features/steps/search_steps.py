@@ -27,7 +27,7 @@ def step_search_for_product(context, query):
     context.test_data["search_query"] = query
 
 
-@when('I search for empty query')
+@when("I search for empty query")
 def step_search_for_empty(context):
     """Search with empty query"""
     logger.info("Step: Searching with empty query")

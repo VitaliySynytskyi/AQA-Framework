@@ -8,7 +8,7 @@ import pytest
 from pathlib import Path
 import sys
 from selenium.webdriver.common.by import By
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, patch, MagicMock
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
@@ -43,24 +43,28 @@ class TestHomePage:
         mock_open.assert_called_once_with("/")
         assert result == home_page
 
-    @patch("pages.home_page.HomePage.input_text")
-    @patch("pages.home_page.HomePage.click")
-    def test_search_product(self, mock_click, mock_input, home_page):
-        """Test searching for product"""
+    @patch("pages.home_page.HomePage.search_product_with_enter")
+    def test_search_product(self, mock_search_with_enter, home_page):
+        """Test searching for product (now uses Enter method)"""
         query = "laptop"
         home_page.search_product(query)
 
-        mock_input.assert_called_once_with(home_page.SEARCH_INPUT, query)
-        mock_click.assert_called_once_with(home_page.SEARCH_BUTTON)
+        # search_product now calls search_product_with_enter
+        mock_search_with_enter.assert_called_once_with(query)
 
-    @patch("pages.home_page.HomePage.input_text")
+    @patch("pages.home_page.HomePage.find_element")
     @patch("pages.home_page.HomePage.press_key")
-    def test_search_product_with_enter(self, mock_press, mock_input, home_page):
+    def test_search_product_with_enter(self, mock_press, mock_find, home_page):
         """Test searching with Enter key"""
         query = "phone"
+        mock_element = MagicMock()
+        mock_find.return_value = mock_element
+
         home_page.search_product_with_enter(query)
 
-        mock_input.assert_called_once_with(home_page.SEARCH_INPUT, query)
+        # Should find element, clear it, and press Enter
+        mock_find.assert_called_with(home_page.SEARCH_INPUT)
+        mock_element.clear.assert_called_once()
         mock_press.assert_called_once_with(home_page.SEARCH_INPUT, "ENTER")
 
     @patch("pages.home_page.HomePage.click")

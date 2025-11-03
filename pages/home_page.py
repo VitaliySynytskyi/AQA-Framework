@@ -59,18 +59,19 @@ class HomePage(BasePage):
             query: Search query
         """
         import time
+
         logger.info(f"Searching for product with Enter: {query}")
-        
+
         # Clear input first
         search_input = self.find_element(self.SEARCH_INPUT)
         search_input.clear()
         time.sleep(0.5)
-        
+
         # Type text slowly to let autocomplete work
         for char in query:
             search_input.send_keys(char)
             time.sleep(0.1)  # Small delay between characters
-        
+
         time.sleep(1)  # Wait for autocomplete suggestions
         logger.info("Pressing Enter...")
         self.press_key(self.SEARCH_INPUT, "ENTER")

@@ -30,7 +30,10 @@ class SearchPage(BasePage):
     SORT_BY_NOVELTY = (By.XPATH, "//option[contains(text(), 'овин') or contains(text(), 'new')]")
     SORT_BY_ACTION = (By.XPATH, "//option[contains(text(), 'кці') or contains(text(), 'sale')]")
     SORT_BY_RATING = (By.XPATH, "//option[contains(text(), 'ейтинг') or contains(text(), 'rating')]")
-    NO_RESULTS_MESSAGE = (By.XPATH, "//*[contains(@class, 'empty') or contains(@class, 'nothing') or contains(@class, 'not-found')]")  # ✓ From parser
+    NO_RESULTS_MESSAGE = (
+        By.XPATH,
+        "//*[contains(@class, 'empty') or contains(@class, 'nothing') or contains(@class, 'not-found')]",
+    )  # ✓ From parser
     SEARCH_QUERY_TEXT = (By.XPATH, "//h1[contains(@class, 'heading') or contains(@class, 'title')]")
     ADD_TO_CART_BUTTONS = (By.XPATH, "//button[contains(@class, 'buy') or contains(@class, 'cart')]")
     PAGINATION = (By.CSS_SELECTOR, "ul[class*='pagination'], div[class*='pagination']")
@@ -38,7 +41,10 @@ class SearchPage(BasePage):
     FILTER_SIDEBAR = (By.XPATH, "//div[contains(@class, 'filter') or contains(@class, 'sidebar')]")  # ✓ From parser
     PRICE_MIN_INPUT = (By.XPATH, "//input[contains(@name, 'min') or contains(@placeholder, 'мін')]")
     PRICE_MAX_INPUT = (By.XPATH, "//input[contains(@name, 'max') or contains(@placeholder, 'макс')]")
-    APPLY_FILTER_BUTTON = (By.XPATH, "//button[contains(text(), 'астосувати') or contains(text(), 'Apply') or contains(@class, 'apply')]")
+    APPLY_FILTER_BUTTON = (
+        By.XPATH,
+        "//button[contains(text(), 'астосувати') or contains(text(), 'Apply') or contains(@class, 'apply')]",
+    )
 
     def __init__(self, driver):
         """Initialize search page"""
@@ -56,8 +62,9 @@ class SearchPage(BasePage):
             True if results loaded
         """
         import time
+
         logger.info("Waiting for search results to load...")
-        
+
         # First, wait for URL to change to search results page
         start_time = time.time()
         url_changed = False
@@ -68,29 +75,29 @@ class SearchPage(BasePage):
                 url_changed = True
                 break
             time.sleep(0.5)
-        
+
         if not url_changed:
             logger.warning("⚠ URL didn't change to search results page")
             return False
-        
+
         # Wait for page to stabilize after navigation
         time.sleep(3)
-        
+
         # Try multiple ways to detect results
         try:
             # Try to find any product-like elements
             if self.is_element_visible(self.PRODUCT_TILES, timeout=5):
                 logger.info("✓ Product tiles found")
                 return True
-            
+
             # Try to find prices (products always have prices)
             if self.is_element_visible(self.PRODUCT_PRICES, timeout=5):
                 logger.info("✓ Product prices found")
                 return True
-            
+
             logger.warning("No clear indication of search results")
             return False
-            
+
         except Exception as e:
             logger.warning(f"Error waiting for results: {e}")
             return False
@@ -103,22 +110,23 @@ class SearchPage(BasePage):
             Number of products
         """
         import time
+
         time.sleep(1)  # Let page stabilize
-        
+
         # Try multiple ways to count products
         products = self.find_elements(self.PRODUCT_TILES)
         if products:
             count = len(products)
             logger.info(f"✓ Found {count} products via PRODUCT_TILES")
             return count
-        
+
         # Try counting by prices
         prices = self.find_elements(self.PRODUCT_PRICES)
         if prices:
             count = len(prices)
             logger.info(f"✓ Found {count} products via PRODUCT_PRICES")
             return count
-        
+
         logger.warning("No products found with any selector")
         return 0
 

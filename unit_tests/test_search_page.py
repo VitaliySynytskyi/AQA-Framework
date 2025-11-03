@@ -37,6 +37,7 @@ class TestSearchPage:
     def test_wait_for_results_success(self, mock_visible, search_page):
         """Test waiting for results successfully"""
         mock_visible.return_value = True
+        search_page.driver.current_url = "https://rozetka.com.ua/search/?text=laptop"
         result = search_page.wait_for_results()
         assert result is True
 
@@ -44,6 +45,7 @@ class TestSearchPage:
     def test_wait_for_results_timeout(self, mock_visible, search_page):
         """Test waiting for results times out"""
         mock_visible.return_value = False
+        search_page.driver.current_url = "https://rozetka.com.ua/"
         result = search_page.wait_for_results()
         assert result is False
 
