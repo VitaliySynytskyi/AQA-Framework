@@ -11,7 +11,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-@when('I open the catalog menu')
+@when("I open the catalog menu")
 def step_open_catalog(context):
     """Open catalog menu"""
     logger.info("Step: Opening catalog menu")
@@ -23,7 +23,7 @@ def step_select_category(context, category):
     """Select category from catalog"""
     logger.info(f"Step: Selecting category '{category}'")
     context.home_page.select_category(category)
-    context.test_data['selected_category'] = category
+    context.test_data["selected_category"] = category
 
 
 @when('I navigate to "{category}" category')
@@ -34,7 +34,7 @@ def step_navigate_to_category(context, category):
     context.home_page.select_category(category)
 
 
-@when('I navigate to any category')
+@when("I navigate to any category")
 def step_navigate_to_any_category(context):
     """Navigate to any category"""
     logger.info("Step: Navigating to any category")
@@ -44,7 +44,7 @@ def step_navigate_to_any_category(context):
         context.home_page.select_category(categories[0])
 
 
-@when('I select a subcategory')
+@when("I select a subcategory")
 def step_select_subcategory(context):
     """Select a subcategory"""
     logger.info("Step: Selecting a subcategory")
@@ -57,25 +57,25 @@ def step_select_subcategory(context):
 def step_click_breadcrumb(context, breadcrumb):
     """Click on breadcrumb"""
     logger.info(f"Step: Clicking breadcrumb '{breadcrumb}'")
-    breadcrumb_locator = ('xpath', f"//ul[contains(@class, 'breadcrumbs')]//a[contains(text(), '{breadcrumb}')]")
+    breadcrumb_locator = ("xpath", f"//ul[contains(@class, 'breadcrumbs')]//a[contains(text(), '{breadcrumb}')]")
     context.home_page.click(breadcrumb_locator)
 
 
-@when('I click on Rozetka logo')
+@when("I click on Rozetka logo")
 def step_click_logo(context):
     """Click on Rozetka logo"""
     logger.info("Step: Clicking Rozetka logo")
     context.home_page.click_logo()
 
 
-@then('I should see main categories')
+@then("I should see main categories")
 def step_verify_main_categories(context):
     """Verify main categories are visible"""
     logger.info("Step: Verifying main categories visible")
     assert context.home_page.is_catalog_opened(), "Catalog menu is not opened"
 
 
-@then('categories list should not be empty')
+@then("categories list should not be empty")
 def step_verify_categories_not_empty(context):
     """Verify categories list is not empty"""
     logger.info("Step: Verifying categories list not empty")
@@ -83,14 +83,14 @@ def step_verify_categories_not_empty(context):
     assert len(categories) > 0, "Categories list is empty"
 
 
-@then('I should be on the category page')
+@then("I should be on the category page")
 def step_verify_on_category_page(context):
     """Verify on category page"""
     logger.info("Step: Verifying on category page")
     assert context.category_page.wait_for_category_load(), "Category page did not load"
 
 
-@then('category title should be displayed')
+@then("category title should be displayed")
 def step_verify_category_title(context):
     """Verify category title is displayed"""
     logger.info("Step: Verifying category title displayed")
@@ -98,7 +98,7 @@ def step_verify_category_title(context):
     assert title, "Category title is not displayed"
 
 
-@then('I should see at least {count:d} main categories')
+@then("I should see at least {count:d} main categories")
 def step_verify_min_categories(context, count):
     """Verify minimum number of categories"""
     logger.info(f"Step: Verifying at least {count} categories")
@@ -106,7 +106,7 @@ def step_verify_min_categories(context, count):
     assert len(categories) >= count, f"Expected at least {count} categories but got {len(categories)}"
 
 
-@then('breadcrumbs should show navigation path')
+@then("breadcrumbs should show navigation path")
 def step_verify_breadcrumbs(context):
     """Verify breadcrumbs show navigation path"""
     logger.info("Step: Verifying breadcrumbs")
@@ -114,14 +114,14 @@ def step_verify_breadcrumbs(context):
     assert len(breadcrumbs) > 1, "Breadcrumbs not showing navigation path"
 
 
-@then('I should return to parent category')
+@then("I should return to parent category")
 def step_verify_parent_category(context):
     """Verify returned to parent category"""
     logger.info("Step: Verifying returned to parent category")
     assert context.category_page.is_category_page(), "Not on category page"
 
 
-@then('I should be on the home page')
+@then("I should be on the home page")
 def step_verify_on_home_page(context):
     """Verify on home page"""
     logger.info("Step: Verifying on home page")

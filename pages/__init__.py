@@ -8,4 +8,4 @@ from pages.search_page import SearchPage
 from pages.cart_page import CartPage
 from pages.category_page import CategoryPage
 
-__all__ = ['BasePage', 'HomePage', 'SearchPage', 'CartPage', 'CategoryPage']
+__all__ = ["BasePage", "HomePage", "SearchPage", "CartPage", "CategoryPage"]
