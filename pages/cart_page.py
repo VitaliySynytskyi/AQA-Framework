@@ -32,7 +32,7 @@ class CartPage(BasePage):
         By.CSS_SELECTOR,
         "button[aria-label*='Видалити']",  # ✓ Parsed
     )
-    EMPTY_CART_MESSAGE = (By.CSS_SELECTOR, "[class*='empty']")  # ✓ Parsed
+    EMPTY_CART_MESSAGE = (By.CSS_SELECTOR, ".cart-dummy__content")  # More specific selector
     TOTAL_PRICE = (By.CSS_SELECTOR, "div[class*='cart-receipt__sum-price']")
     CHECKOUT_BUTTON = (
         By.XPATH,
