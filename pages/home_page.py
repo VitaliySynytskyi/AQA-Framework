@@ -138,7 +138,7 @@ class HomePage(BasePage):
         import time
 
         logger.info(f"Changing language to: {language}")
-        
+
         # Click language switcher button
         self.click(self.LANGUAGE_SWITCHER, timeout=15)
         time.sleep(1)  # Wait for dropdown to open
@@ -149,7 +149,7 @@ class HomePage(BasePage):
             self.click(self.LANGUAGE_RU, timeout=10)
         else:
             raise ValueError(f"Unsupported language: {language}")
-        
+
         time.sleep(2)  # Wait for page to reload with new language
 
     def get_current_language(self) -> str:
