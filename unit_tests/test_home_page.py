@@ -36,11 +36,13 @@ class TestHomePage:
         assert home_page.driver is not None
         assert home_page.SEARCH_INPUT is not None
 
+    @patch("pages.home_page.HomePage.wait_for_element_visible")
     @patch("pages.home_page.HomePage.open")
-    def test_open_home_page(self, mock_open, home_page):
+    def test_open_home_page(self, mock_open, mock_wait, home_page):
         """Test opening home page"""
         result = home_page.open_home_page()
         mock_open.assert_called_once_with("/")
+        mock_wait.assert_called_once_with(home_page.SEARCH_INPUT, timeout=30)
         assert result == home_page
 
     @patch("pages.home_page.HomePage.search_product_with_enter")
@@ -63,7 +65,7 @@ class TestHomePage:
         home_page.search_product_with_enter(query)
 
         # Should wait for element visibility, clear it, and press Enter
-        mock_wait.assert_called_with(home_page.SEARCH_INPUT, timeout=20)
+        mock_wait.assert_called_with(home_page.SEARCH_INPUT, timeout=30)
         mock_element.clear.assert_called_once()
         mock_press.assert_called_once_with(home_page.SEARCH_INPUT, "ENTER")
 

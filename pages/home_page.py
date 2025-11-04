@@ -39,8 +39,17 @@ class HomePage(BasePage):
 
     def open_home_page(self):
         """Open Rozetka home page"""
+        import time
+
         logger.info("Opening Rozetka home page")
         self.open("/")
+        
+        # Wait for page to fully load (important for headless mode)
+        time.sleep(3)
+        
+        # Wait for search input to be present (ensures page is loaded)
+        self.wait_for_element_visible(self.SEARCH_INPUT, timeout=30)
+        logger.info("Home page loaded successfully")
         return self
 
     def search_product(self, query: str):
@@ -65,8 +74,8 @@ class HomePage(BasePage):
 
         logger.info(f"Searching for product with Enter: {query}")
 
-        # Wait for search input to be visible and interactable
-        search_input = self.wait_for_element_visible(self.SEARCH_INPUT, timeout=20)
+        # Wait for search input to be visible and interactable (increased timeout for CI/CD)
+        search_input = self.wait_for_element_visible(self.SEARCH_INPUT, timeout=30)
         search_input.clear()
         time.sleep(0.5)
 
