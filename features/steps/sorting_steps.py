@@ -28,11 +28,11 @@ def step_sort_price_desc(context):
     time.sleep(2)  # Wait for sorting to apply
 
 
-@when("I sort products by popularity")
-def step_sort_by_popularity(context):
-    """Sort products by popularity"""
-    logger.info("Step: Sorting by popularity")
-    context.search_page.sort_by("popularity")
+@when("I sort products by rating")
+def step_sort_by_rating(context):
+    """Sort products by rating"""
+    logger.info("Step: Sorting by rating")
+    context.search_page.sort_by("rating")
     time.sleep(2)
 
 

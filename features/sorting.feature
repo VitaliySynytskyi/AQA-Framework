@@ -18,8 +18,8 @@ Feature: Product Sorting
     When I sort products by price descending
     Then products should be sorted by price in descending order
 
-  Scenario: Sort products by popularity
-    When I sort products by popularity
+  Scenario: Sort products by rating
+    When I sort products by rating
     Then products should be displayed
     And sorting option should be active
 

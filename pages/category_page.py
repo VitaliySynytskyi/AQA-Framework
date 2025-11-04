@@ -17,13 +17,14 @@ logger = logging.getLogger(__name__)
 class CategoryPage(BasePage):
     """Category page of Rozetka"""
 
-    # Locators
-    CATEGORY_TITLE = (By.CSS_SELECTOR, "h1[class*='catalog__heading']")
+    # Locators (parsed from live Rozetka - December 2025)
+    CATEGORY_TITLE = (By.CSS_SELECTOR, "h1")  # ✓ Parsed: simple h1 selector
     PRODUCT_TILES = (By.CSS_SELECTOR, "li[class*='catalog-grid__cell']")
     PRODUCT_TITLES = (By.CSS_SELECTOR, "span[class*='goods-tile__title']")
     PRODUCT_PRICES = (By.CSS_SELECTOR, "span[class*='goods-tile__price-value']")
     SUBCATEGORIES = (By.CSS_SELECTOR, "div[class*='tiles-list'] a")
-    BREADCRUMBS = (By.CSS_SELECTOR, "ul[class*='breadcrumbs'] li")
+    BREADCRUMBS = (By.CSS_SELECTOR, "nav")  # ✓ Parsed: first nav is breadcrumbs
+    BREADCRUMB_LINKS = (By.CSS_SELECTOR, "nav a")  # ✓ Links within breadcrumbs
     FILTERS_SIDEBAR = (By.CSS_SELECTOR, "aside[class*='sidebar']")
     SORT_DROPDOWN = (By.CSS_SELECTOR, "select[class*='select-css']")
     VIEW_GRID_BUTTON = (By.CSS_SELECTOR, "button[class*='catalog-view--grid']")
@@ -113,8 +114,11 @@ class CategoryPage(BasePage):
             List of breadcrumb items
         """
         logger.info("Getting breadcrumbs")
-        breadcrumb_elements = self.find_elements(self.BREADCRUMBS)
-        return [bc.text for bc in breadcrumb_elements if bc.text]
+        # Get breadcrumb links
+        breadcrumb_links = self.find_elements(self.BREADCRUMB_LINKS)
+        breadcrumbs = [bc.text.strip() for bc in breadcrumb_links if bc.text.strip()]
+        logger.info(f"Breadcrumbs: {breadcrumbs}")
+        return breadcrumbs
 
     def click_product(self, index: int = 0):
         """

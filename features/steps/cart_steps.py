@@ -18,7 +18,7 @@ def step_add_first_product_to_cart(context):
     logger.info("Step: Adding first product to cart")
     context.search_page.wait_for_results()
     context.search_page.add_product_to_cart(0)
-    time.sleep(3)  # Wait for cart update (increased from 2s)
+    time.sleep(4)  # Wait for cart update (increased from 3s)
 
 
 @when("I add second product to cart")
@@ -26,7 +26,7 @@ def step_add_second_product_to_cart(context):
     """Add second product to cart"""
     logger.info("Step: Adding second product to cart")
     context.search_page.add_product_to_cart(1)
-    time.sleep(3)  # Wait for cart update (increased from 2s)
+    time.sleep(4)  # Wait for cart update (increased from 3s)
 
 
 @when("I remember the first product title")
@@ -44,7 +44,9 @@ def step_open_cart(context):
     """Open shopping cart"""
     logger.info("Step: Opening cart")
     context.home_page.open_cart()
-    time.sleep(2)
+    time.sleep(3)  # Increased wait time
+    # Ensure cart page loads
+    context.cart_page.wait_for_cart_load()
 
 
 @when("I remove first item from cart")
@@ -59,6 +61,8 @@ def step_remove_first_item(context):
 def step_increase_quantity(context):
     """Increase quantity of first item"""
     logger.info("Step: Increasing quantity of first item")
+    # Ensure cart is loaded
+    time.sleep(2)
     context.cart_page.increase_item_quantity(0)
     time.sleep(2)
 
@@ -82,7 +86,13 @@ def step_click_continue_shopping(context):
 @then("cart should contain {count:d} items")
 def step_verify_cart_items_count(context, count):
     """Verify cart contains specific number of items"""
+    import time
+    
     logger.info(f"Step: Verifying cart contains {count} items")
+    
+    # Give extra time for cart counter to update
+    time.sleep(2)
+    
     actual_count = context.home_page.get_cart_items_count()
     assert actual_count == count, f"Expected {count} items in cart but got {actual_count}"
 
@@ -90,9 +100,12 @@ def step_verify_cart_items_count(context, count):
 @then("the product should be in the cart")
 def step_verify_product_in_cart(context):
     """Verify product is in cart"""
+    import time
+    
     logger.info("Step: Verifying product in cart")
     context.home_page.open_cart()
-    time.sleep(2)
+    time.sleep(3)  # Wait for cart to load
+    context.cart_page.wait_for_cart_load()
     assert not context.cart_page.is_cart_empty(), "Cart is empty, expected product"
 
 

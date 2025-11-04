@@ -180,9 +180,8 @@ class SearchPage(BasePage):
         sort_values = {
             "price_asc": "cheap",
             "price_desc": "expensive",
-            "popularity": "popularity",
-            "novelty": "novelty",
             "rating": "rank",
+            "novelty": "novelty",
         }
 
         if sort_option not in sort_values:
@@ -317,19 +316,36 @@ class SearchPage(BasePage):
                 logger.info("JavaScript click executed")
 
             logger.info("Button clicked, waiting for cart update...")
-            time.sleep(3)  # Increased wait for cart counter update
+            time.sleep(2)  # Wait for modal to appear
 
             # Check if modal appeared and close it
             modal_locator = (By.CSS_SELECTOR, "rz-modal rz-modal-layout")
-            if self.is_element_visible(modal_locator, timeout=2):
+            if self.is_element_visible(modal_locator, timeout=3):
                 logger.info("Modal appeared, closing...")
                 # Press Escape key to close modal
                 from selenium.webdriver.common.keys import Keys
 
                 self.driver.find_element(By.TAG_NAME, "body").send_keys(Keys.ESCAPE)
                 logger.info("Closed modal via Escape key")
-                time.sleep(1)
+                time.sleep(2)  # Wait for modal to close
+                
+                # Wait for modal to fully disappear
+                try:
+                    from selenium.webdriver.support.ui import WebDriverWait
+                    from selenium.webdriver.support import expected_conditions as EC
+                    WebDriverWait(self.driver, 5).until(
+                        EC.invisibility_of_element_located(modal_locator)
+                    )
+                    logger.info("Modal closed successfully")
+                except:
+                    logger.warning("Modal might still be visible")
+            else:
+                # If no modal, still wait for cart to update
+                logger.info("No modal appeared, waiting for background cart update...")
+                time.sleep(3)
 
+            # Additional wait for cart counter to update
+            time.sleep(2)
             logger.info(f"Successfully added product {index} to cart")
         else:
             raise IndexError(f"Product index {index} out of range (found {len(add_buttons)} buttons)")

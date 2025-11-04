@@ -16,23 +16,23 @@ logger = logging.getLogger(__name__)
 class HomePage(BasePage):
     """Home page of Rozetka"""
 
-    # Locators (updated with actual Rozetka selectors 2025)
-    SEARCH_INPUT = (By.NAME, "search")  # ✓ Verified working
+    # Locators (parsed from live Rozetka site - December 2025)
+    SEARCH_INPUT = (By.NAME, "search")  # ✓ Verified: input[name='search']
     SEARCH_BUTTON = (
         By.CSS_SELECTOR,
         "rz-search-suggest form button[type='submit']",
-    )  # ✓ Nov 2025 - more specific
-    LOGO = (By.CSS_SELECTOR, "a[class*='logo']")  # ✓ Updated from parser
-    LANGUAGE_SWITCHER = (By.CSS_SELECTOR, "button[data-testid='lang_btn']")  # ✓ Nov 2025 - data-testid
-    LANGUAGE_UK = (By.XPATH, "//button[contains(@class, 'lang')]//a[contains(text(), 'UA')]")
-    LANGUAGE_RU = (By.XPATH, "//button[contains(@class, 'lang')]//a[contains(text(), 'RU')]")
-    CATALOG_BUTTON = (By.CSS_SELECTOR, "button[data-testid='menu_button']")  # ✓ Nov 2025 - data-testid
-    CART_ICON = (By.CSS_SELECTOR, "button[data-testid='header-cart-btn']")  # ✓ Nov 2025 - data-testid
+    )
+    LOGO = (By.CSS_SELECTOR, "a[class*='logo']")
+    # Language switching via URL (NO dropdown UI exists)
+    UK_URL = "https://rozetka.com.ua/ua/"
+    RU_URL = "https://rozetka.com.ua/ru/"
+    CATALOG_BUTTON = (By.CSS_SELECTOR, "button[data-testid='fat_menu_btn']")  # ✓ Parsed: fat_menu_btn
+    CART_ICON = (By.CSS_SELECTOR, "button[data-testid='header-cart-btn']")  # ✓ Verified
     CART_COUNTER = (
         By.CSS_SELECTOR,
-        "button[data-testid='header-cart-btn'] span[class*='counter']",
-    )
-    MAIN_CATEGORIES = (By.CSS_SELECTOR, "ul[class*='menu'] > li")
+        "button[data-testid='header-cart-btn'] .badge",
+    )  # ✓ Parsed
+    MAIN_CATEGORIES = (By.CSS_SELECTOR, "a.menu-link")  # ✓ Parsed: category links in menu
     PROMOTION_BANNER = (By.CSS_SELECTOR, "div[class*='promo']")
 
     def __init__(self, driver):
@@ -119,20 +119,14 @@ class HomePage(BasePage):
 
         time.sleep(1)  # Wait for menu animation
 
-        # Try multiple selectors
-        selectors = [
-            (By.CSS_SELECTOR, "ul[class*='menu-categories']"),
-            (By.CSS_SELECTOR, "div[class*='menu-wrapper']"),
-            (By.CSS_SELECTOR, "rz-sidebar-fat-menu"),
-            (By.CSS_SELECTOR, "[class*='fat-menu']"),
-        ]
-
-        for selector in selectors:
-            if self.is_element_visible(selector, timeout=3):
-                logger.info(f"Catalog opened (detected via {selector})")
+        # Check for menu container with category links
+        if self.is_element_visible((By.CSS_SELECTOR, "div[class*='menu']"), timeout=3):
+            # Verify that category links are visible
+            if self.is_element_visible((By.CSS_SELECTOR, "a.menu-link"), timeout=3):
+                logger.info("Catalog opened (detected via menu links)")
                 return True
 
-        logger.warning("Catalog not detected with any selector")
+        logger.warning("Catalog not detected")
         return False
 
     def get_main_categories(self) -> list:
@@ -142,10 +136,18 @@ class HomePage(BasePage):
         Returns:
             List of category names
         """
+        import time
+        
         logger.info("Getting main categories")
-        self.open_catalog()
+        
+        # Ensure catalog is open
+        if not self.is_catalog_opened():
+            self.open_catalog()
+            time.sleep(2)  # Wait for menu to fully expand
+        
+        # Find category links
         categories = self.find_elements(self.MAIN_CATEGORIES)
-        category_names = [cat.text for cat in categories if cat.text]
+        category_names = [cat.text.strip() for cat in categories if cat.text.strip()]
         logger.info(f"Found {len(category_names)} categories")
         return category_names
 
@@ -156,14 +158,29 @@ class HomePage(BasePage):
         Args:
             category_name: Name of category to select
         """
+        import time
+        
         logger.info(f"Selecting category: {category_name}")
-        self.open_catalog()
-        category_locator = (By.XPATH, f"//ul[contains(@class, 'menu-categories')]//a[contains(text(), '{category_name}')]")
+        
+        # Ensure catalog is open
+        if not self.is_catalog_opened():
+            self.open_catalog()
+            time.sleep(2)  # Wait for menu to fully expand
+        
+        # Escape single quotes in XPath by using concat
+        if "'" in category_name:
+            # Split by ' and use concat
+            parts = category_name.split("'")
+            xpath_text = f"concat('{parts[0]}', \"'\", '{parts[1]}')"
+            category_locator = (By.XPATH, f"//a[contains(@class, 'menu-link') and contains(text(), {xpath_text})]")
+        else:
+            category_locator = (By.XPATH, f"//a[contains(@class, 'menu-link') and contains(text(), '{category_name}')]")
+        
         self.click(category_locator)
 
     def change_language(self, language: str):
         """
-        Change site language
+        Change site language via URL (Rozetka uses URL-based language switching)
 
         Args:
             language: Language code ('uk' or 'ru')
@@ -172,28 +189,32 @@ class HomePage(BasePage):
 
         logger.info(f"Changing language to: {language}")
 
-        # Click language switcher button
-        self.click(self.LANGUAGE_SWITCHER, timeout=10)
-        time.sleep(0.5)  # Wait for dropdown
-
         if language.lower() == "uk":
-            self.click(self.LANGUAGE_UK, timeout=10)
+            logger.info(f"Navigating to Ukrainian version: {self.UK_URL}")
+            self.driver.get(self.UK_URL)
         elif language.lower() == "ru":
-            self.click(self.LANGUAGE_RU, timeout=10)
+            logger.info(f"Navigating to Russian version: {self.RU_URL}")
+            self.driver.get(self.RU_URL)
         else:
             raise ValueError(f"Unsupported language: {language}")
 
-        time.sleep(1)  # Wait for page to reload
+        time.sleep(2)  # Wait for page to load
 
     def get_current_language(self) -> str:
         """
-        Get current language
+        Get current language from URL
 
         Returns:
-            Current language code
+            Current language code ('uk' or 'ru')
         """
-        lang_button = self.find_element(self.LANGUAGE_SWITCHER)
-        return lang_button.text.lower()
+        current_url = self.get_current_url()
+        if "/ua/" in current_url:
+            return "uk"
+        elif "/ru/" in current_url:
+            return "ru"
+        else:
+            # Default language is Ukrainian
+            return "uk"
 
     def open_cart(self):
         """Open shopping cart"""
@@ -212,18 +233,26 @@ class HomePage(BasePage):
         """
         import time
 
-        time.sleep(2)  # Increased wait for counter to update
+        # Wait longer for counter to update after adding to cart
+        time.sleep(3)
 
-        if self.is_element_visible(self.CART_COUNTER, timeout=5):
-            count_text = self.get_text(self.CART_COUNTER)
-            logger.info(f"Cart counter shows: {count_text}")
-            try:
-                return int(count_text)
-            except ValueError:
-                logger.warning(f"Could not parse cart counter: {count_text}")
+        try:
+            # Try to find the counter element
+            counter_element = self.driver.find_element(*self.CART_COUNTER)
+            count_text = counter_element.text.strip()
+            
+            if count_text:
+                logger.info(f"Cart counter shows: '{count_text}'")
+                try:
+                    return int(count_text)
+                except ValueError:
+                    logger.warning(f"Could not parse cart counter: '{count_text}'")
+                    return 0
+            else:
+                logger.info("Cart counter element found but empty (0 items)")
                 return 0
-        else:
-            logger.info("Cart counter not visible (likely 0 items)")
+        except Exception as e:
+            logger.info(f"Cart counter not found or not visible (0 items): {e}")
             return 0
 
     def click_logo(self):

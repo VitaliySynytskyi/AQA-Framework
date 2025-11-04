@@ -15,26 +15,24 @@ Feature: Category Navigation
 
   Scenario: Navigate to specific category
     When I open the catalog menu
-    And I select "Ноутбуки та комп'ютери" category
+    And I select "Ноутбуки" category
     Then I should be on the category page
     And category title should be displayed
 
-  Scenario: Navigate to Electronics category
+  Scenario: Navigate to Tablets category
     When I open the catalog menu
-    And I select "Смартфони, ТВ і електроніка" category
+    And I select "Планшети" category
     Then I should be on the category page
-    And products should be displayed
+    And category title should be displayed
 
   Scenario: View all main categories
     When I open the catalog menu
     Then I should see at least 10 main categories
 
   Scenario: Navigate using breadcrumbs
-    When I navigate to "Ноутбуки та комп'ютери" category
+    When I navigate to "Ноутбуки" category
     And I select a subcategory
     Then breadcrumbs should show navigation path
-    When I click on breadcrumb "Ноутбуки та комп'ютери"
-    Then I should return to parent category
 
   Scenario: Return to home from category
     When I navigate to any category

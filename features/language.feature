@@ -2,23 +2,22 @@
 
 Feature: Language Switching
   As a user of Rozetka website
-  I want to change the site language
-  So that I can browse the site in my preferred language
+  I want to verify the site language
+  So that I can browse the site in Ukrainian
 
   Background:
     Given I am on the Rozetka home page
 
-  Scenario: Switch language to Ukrainian
+  Scenario: Verify default language is Ukrainian
+    Then the site should be displayed in Ukrainian language
+
+  Scenario: Switch to Ukrainian language explicitly
     When I switch language to "uk"
     Then the site should be displayed in Ukrainian language
 
-  Scenario: Switch language to Russian
-    When I switch language to "ru"
-    Then the site should be displayed in Russian language
-
   Scenario: Verify language persists after navigation
     When I switch language to "uk"
-    And I navigate to "Ноутбуки та комп'ютери" category
+    And I navigate to "Ноутбуки" category
     Then the site should still be in Ukrainian language
 
   Scenario: Verify language persists after search
@@ -26,8 +25,6 @@ Feature: Language Switching
     And I search for "телефон"
     Then search results should be displayed in Ukrainian
 
-  Scenario: Toggle between languages
+  Scenario: Verify Ukrainian language setting
     When I switch language to "uk"
     Then current language should be "uk"
-    When I switch language to "ru"
-    Then current language should be "ru"

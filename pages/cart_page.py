@@ -70,15 +70,20 @@ class CartPage(BasePage):
         import time
 
         logger.info("Waiting for cart to load")
-        time.sleep(1)
+        time.sleep(2)  # Initial wait for page to stabilize
 
         # Check if modal appeared
         if self.is_element_visible(self.CART_MODAL, timeout=3):
             logger.info("Cart modal appeared")
+            time.sleep(1)  # Wait for modal content to load
             return True
 
         # Otherwise wait for page header
-        return self.is_element_visible(self.CART_HEADER, timeout=timeout)
+        cart_loaded = self.is_element_visible(self.CART_HEADER, timeout=timeout)
+        if cart_loaded:
+            logger.info("Cart page loaded")
+            time.sleep(1)  # Wait for content to load
+        return cart_loaded
 
     def is_cart_empty(self) -> bool:
         """
@@ -98,10 +103,16 @@ class CartPage(BasePage):
         Returns:
             Number of items
         """
+        import time
+        
+        # Wait a bit for cart items to render
+        time.sleep(1)
+        
         if self.is_cart_empty():
+            logger.info("Cart is empty (0 items)")
             return 0
 
-        items = self.find_elements(self.CART_ITEMS)
+        items = self.find_elements(self.CART_ITEMS, timeout=5)
         count = len(items)
         logger.info(f"Cart has {count} items")
         return count
@@ -193,7 +204,11 @@ class CartPage(BasePage):
         import time
 
         logger.info(f"Increasing quantity for item at index {index}")
-        increase_buttons = self.find_elements(self.QUANTITY_INCREASE_BUTTONS)
+        
+        # Wait for cart page to fully load
+        time.sleep(2)
+        
+        increase_buttons = self.find_elements(self.QUANTITY_INCREASE_BUTTONS, timeout=10)
         logger.info(f"Found {len(increase_buttons)} increase buttons")
 
         if 0 <= index < len(increase_buttons):
@@ -202,14 +217,14 @@ class CartPage(BasePage):
                 "arguments[0].scrollIntoView({block: 'center'});",
                 increase_buttons[index],
             )
-            time.sleep(0.3)
+            time.sleep(0.5)
 
             # Click button
             self.execute_script("arguments[0].click();", increase_buttons[index])
-            time.sleep(1)  # Wait for quantity update
+            time.sleep(2)  # Wait for quantity update
             logger.info(f"Increased quantity for item {index}")
         else:
-            raise IndexError(f"Item index {index} out of range")
+            raise IndexError(f"Item index {index} out of range (found {len(increase_buttons)} buttons)")
 
     def decrease_item_quantity(self, index: int = 0):
         """
