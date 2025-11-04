@@ -17,31 +17,52 @@ logger = logging.getLogger(__name__)
 class CartPage(BasePage):
     """Shopping cart page of Rozetka"""
 
-    # Locators
-    CART_ITEMS = (By.CSS_SELECTOR, "li[class*='cart-product']")
-    CART_ITEM_TITLES = (By.CSS_SELECTOR, "a[class*='cart-product__title']")
-    CART_ITEM_PRICES = (By.CSS_SELECTOR, "span[class*='cart-product__price']")
-    CART_ITEM_QUANTITIES = (By.CSS_SELECTOR, "input[class*='cart-counter__input']")
-    REMOVE_ITEM_BUTTONS = (By.CSS_SELECTOR, "button[class*='cart-product__remove']")
+    # Locators - Updated from actual Rozetka HTML (Nov 2025)
+    CART_MODAL = (By.CSS_SELECTOR, "rz-modal rz-modal-layout")
+    CART_MODAL_HEADER = (By.CSS_SELECTOR, "rz-modal-layout .header h2")
+    CART_ITEMS = (By.CSS_SELECTOR, "rz-cart-product")
+    CART_ITEM_BODY = (By.CSS_SELECTOR, ".cart-product__body")
+    CART_ITEM_TITLES = (By.CSS_SELECTOR, "rz-cart-product a[class*='title']")
+    CART_ITEM_PRICES = (By.CSS_SELECTOR, "rz-cart-product span[class*='price']")
+    CART_ITEM_QUANTITIES = (
+        By.CSS_SELECTOR,
+        "rz-cart-product input[class*='counter']",
+    )
+    REMOVE_ITEM_BUTTONS = (
+        By.CSS_SELECTOR,
+        "rz-cart-product button[class*='remove']",
+    )
     EMPTY_CART_MESSAGE = (By.CSS_SELECTOR, "div[class*='cart-dummy']")
     TOTAL_PRICE = (By.CSS_SELECTOR, "div[class*='cart-receipt__sum-price']")
-    CHECKOUT_BUTTON = (By.XPATH, "//button[contains(text(), 'Оформлення замовлення')]")
+    CHECKOUT_BUTTON = (
+        By.XPATH,
+        "//button[contains(text(), 'Оформлення замовлення')]",
+    )
     CONTINUE_SHOPPING_BUTTON = (By.CSS_SELECTOR, "a[class*='cart-dummy__button']")
-    QUANTITY_INCREASE_BUTTONS = (By.CSS_SELECTOR, "button[class*='cart-counter__button--plus']")
-    QUANTITY_DECREASE_BUTTONS = (By.CSS_SELECTOR, "button[class*='cart-counter__button--minus']")
-    CART_HEADER = (By.CSS_SELECTOR, "h1[class*='cart-page__title']")
+    QUANTITY_INCREASE_BUTTONS = (
+        By.CSS_SELECTOR,
+        "rz-cart-product button[class*='plus']",
+    )
+    QUANTITY_DECREASE_BUTTONS = (
+        By.CSS_SELECTOR,
+        "rz-cart-product button[class*='minus']",
+    )
+    CART_HEADER = (
+        By.CSS_SELECTOR,
+        "h1[class*='cart-page__title'], rz-modal-layout h2",
+    )
 
     def __init__(self, driver):
         """Initialize cart page"""
         super().__init__(driver)
         logger.info("Initialized CartPage")
 
-    def wait_for_cart_load(self, timeout: int = 30) -> bool:
+    def wait_for_cart_load(self, timeout: int = 15) -> bool:
         """
-        Wait for cart page to load
+        Wait for cart modal/page to load
 
         Args:
-            timeout: Wait timeout in seconds (increased for CI/CD)
+            timeout: Wait timeout in seconds
 
         Returns:
             True if loaded
@@ -49,7 +70,14 @@ class CartPage(BasePage):
         import time
 
         logger.info("Waiting for cart to load")
-        time.sleep(2)  # Give cart time to initialize
+        time.sleep(1)
+
+        # Check if modal appeared
+        if self.is_element_visible(self.CART_MODAL, timeout=3):
+            logger.info("Cart modal appeared")
+            return True
+
+        # Otherwise wait for page header
         return self.is_element_visible(self.CART_HEADER, timeout=timeout)
 
     def is_cart_empty(self) -> bool:
@@ -162,10 +190,24 @@ class CartPage(BasePage):
         Args:
             index: Item index (0-based)
         """
+        import time
+
         logger.info(f"Increasing quantity for item at index {index}")
         increase_buttons = self.find_elements(self.QUANTITY_INCREASE_BUTTONS)
+        logger.info(f"Found {len(increase_buttons)} increase buttons")
+
         if 0 <= index < len(increase_buttons):
-            increase_buttons[index].click()
+            # Scroll to button
+            self.execute_script(
+                "arguments[0].scrollIntoView({block: 'center'});",
+                increase_buttons[index],
+            )
+            time.sleep(0.3)
+
+            # Click button
+            self.execute_script("arguments[0].click();", increase_buttons[index])
+            time.sleep(1)  # Wait for quantity update
+            logger.info(f"Increased quantity for item {index}")
         else:
             raise IndexError(f"Item index {index} out of range")
 

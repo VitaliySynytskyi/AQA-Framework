@@ -35,10 +35,7 @@ class SearchPage(BasePage):
         "//*[contains(@class, 'empty') or contains(@class, 'nothing') or contains(@class, 'not-found')]",
     )  # ✓ From parser
     SEARCH_QUERY_TEXT = (By.XPATH, "//h1[contains(@class, 'heading') or contains(@class, 'title')]")
-    ADD_TO_CART_BUTTONS = (
-        By.XPATH,
-        "//button[contains(@class, 'buy') or contains(@class, 'cart') or contains(@class, 'basket') or @data-testid='buy-button']",
-    )
+    ADD_TO_CART_BUTTONS = (By.CSS_SELECTOR, "rz-buy-button button")
     PAGINATION = (By.CSS_SELECTOR, "ul[class*='pagination'], div[class*='pagination']")
     NEXT_PAGE_BUTTON = (By.XPATH, "//a[contains(@class, 'next') or contains(@class, 'forward')]")
     FILTER_SIDEBAR = (By.XPATH, "//div[contains(@class, 'filter') or contains(@class, 'sidebar')]")  # ✓ From parser
@@ -54,9 +51,9 @@ class SearchPage(BasePage):
         super().__init__(driver)
         logger.info("Initialized SearchPage")
 
-    def wait_for_results(self, timeout: int = 15) -> bool:
+    def wait_for_results(self, timeout: int = 10) -> bool:
         """
-        Wait for search results to load (with increased timeout and multiple attempts)
+        Wait for search results to load
 
         Args:
             timeout: Wait timeout in seconds
@@ -68,33 +65,31 @@ class SearchPage(BasePage):
 
         logger.info("Waiting for search results to load...")
 
-        # First, wait for URL to change to search results page
+        # Wait for URL to change
         start_time = time.time()
         url_changed = False
-        while (time.time() - start_time) < 10:
+        while (time.time() - start_time) < 5:
             current_url = self.driver.current_url
             if "search" in current_url or "catalog" in current_url:
                 logger.info(f"✓ URL changed to results page: {current_url}")
                 url_changed = True
                 break
-            time.sleep(0.5)
+            time.sleep(0.3)
 
         if not url_changed:
             logger.warning("⚠ URL didn't change to search results page")
             return False
 
-        # Wait for page to stabilize after navigation
-        time.sleep(3)
+        # Wait briefly for page to stabilize
+        time.sleep(1)
 
-        # Try multiple ways to detect results
+        # Try to find product elements
         try:
-            # Try to find any product-like elements
-            if self.is_element_visible(self.PRODUCT_TILES, timeout=5):
+            if self.is_element_visible(self.PRODUCT_TILES, timeout=3):
                 logger.info("✓ Product tiles found")
                 return True
 
-            # Try to find prices (products always have prices)
-            if self.is_element_visible(self.PRODUCT_PRICES, timeout=5):
+            if self.is_element_visible(self.PRODUCT_PRICES, timeout=3):
                 logger.info("✓ Product prices found")
                 return True
 
@@ -179,8 +174,7 @@ class SearchPage(BasePage):
 
         logger.info(f"Sorting by: {sort_option}")
 
-        # Wait for sort dropdown to be present
-        time.sleep(2)
+        time.sleep(1)  # Brief wait for dropdown
 
         # Map sort options to select values
         sort_values = {
@@ -196,14 +190,16 @@ class SearchPage(BasePage):
 
         try:
             # Find the select element
-            select_element = self.find_element(self.SORT_DROPDOWN, timeout=15)
+            select_element = self.find_element(self.SORT_DROPDOWN, timeout=10)
 
             # Use Selenium Select class
             select = Select(select_element)
             select.select_by_value(sort_values[sort_option])
 
-            time.sleep(3)  # Wait for page to reload with sorted results
-            logger.info(f"Successfully sorted by {sort_option} (value={sort_values[sort_option]})")
+            time.sleep(2)  # Wait for page to reload with sorted results
+            logger.info(
+                f"Successfully sorted by {sort_option} (value={sort_values[sort_option]})"
+            )
         except Exception as e:
             logger.error(f"Failed to sort by {sort_option}: {e}")
             raise
@@ -286,43 +282,54 @@ class SearchPage(BasePage):
 
         logger.info(f"Adding product at index {index} to cart")
 
-        # Wait for add to cart buttons to be visible
-        time.sleep(2)  # Give page time to render buttons
-        add_buttons = self.find_elements(self.ADD_TO_CART_BUTTONS, timeout=15)
+        # Wait for add to cart buttons
+        time.sleep(1)
+        add_buttons = self.find_elements(self.ADD_TO_CART_BUTTONS, timeout=10)
 
         logger.info(f"Found {len(add_buttons)} add to cart buttons")
 
         if not add_buttons:
             logger.error("No add to cart buttons found")
-            # Try to log page source for debugging
             logger.error(f"Current URL: {self.driver.current_url}")
             raise Exception("No add to cart buttons found on page")
 
         if 0 <= index < len(add_buttons):
-            # Scroll to button and wait
+            # Scroll to button
             logger.info(f"Scrolling to button {index}")
-            self.execute_script("arguments[0].scrollIntoView({block: 'center'});", add_buttons[index])
-            time.sleep(1)
+            self.execute_script(
+                "arguments[0].scrollIntoView({block: 'center'});",
+                add_buttons[index],
+            )
+            time.sleep(0.5)
 
-            # Check if button is visible
-            is_displayed = add_buttons[index].is_displayed()
-            is_enabled = add_buttons[index].is_enabled()
-            logger.info(f"Button {index} - displayed: {is_displayed}, enabled: {is_enabled}")
-
-            # Click using JavaScript if regular click fails
+            # Click button
             try:
-                logger.info(f"Attempting regular click on button {index}")
-                add_buttons[index].click()
-                logger.info(f"Regular click successful")
-            except Exception as e:
-                logger.warning(f"Regular click failed: {e}, trying JavaScript click")
+                logger.info(f"Clicking add to cart button {index}")
                 self.execute_script("arguments[0].click();", add_buttons[index])
-                logger.info(f"JavaScript click executed")
+                logger.info("Button clicked, waiting for cart update...")
+                time.sleep(2)  # Wait for cart counter to update
 
-            time.sleep(2)  # Wait for cart update
-            logger.info(f"Successfully clicked add to cart button {index}")
+                # Check if modal appeared and close it
+                modal_locator = (By.CSS_SELECTOR, "rz-modal rz-modal-layout")
+                if self.is_element_visible(modal_locator, timeout=3):
+                    logger.info("Modal appeared, closing...")
+                    # Press Escape key to close modal
+                    from selenium.webdriver.common.keys import Keys
+
+                    self.driver.find_element(By.TAG_NAME, "body").send_keys(
+                        Keys.ESCAPE
+                    )
+                    logger.info("Closed modal via Escape key")
+                    time.sleep(0.5)
+
+                logger.info(f"Successfully added product {index} to cart")
+            except Exception as e:
+                logger.error(f"Failed to add product to cart: {e}")
+                raise
         else:
-            raise IndexError(f"Product index {index} out of range (found {len(add_buttons)} buttons)")
+            raise IndexError(
+                f"Product index {index} out of range (found {len(add_buttons)} buttons)"
+            )
 
     def set_price_filter(self, min_price: int = None, max_price: int = None):
         """

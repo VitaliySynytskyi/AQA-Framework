@@ -28,7 +28,10 @@ class HomePage(BasePage):
     LANGUAGE_RU = (By.XPATH, "//button[contains(@class, 'lang')]//a[contains(text(), 'RU')]")
     CATALOG_BUTTON = (By.CSS_SELECTOR, "button[data-testid='menu_button']")  # ✓ Nov 2025 - data-testid
     CART_ICON = (By.CSS_SELECTOR, "button[data-testid='header-cart-btn']")  # ✓ Nov 2025 - data-testid
-    CART_COUNTER = (By.CSS_SELECTOR, "span[class*='counter']")
+    CART_COUNTER = (
+        By.CSS_SELECTOR,
+        "button[data-testid='header-cart-btn'] span[class*='counter']",
+    )
     MAIN_CATEGORIES = (By.CSS_SELECTOR, "ul[class*='menu'] > li")
     PROMOTION_BANNER = (By.CSS_SELECTOR, "div[class*='promo']")
 
@@ -44,11 +47,11 @@ class HomePage(BasePage):
         logger.info("Opening Rozetka home page")
         self.open("/")
 
-        # Wait for page to fully load (important for headless mode)
-        time.sleep(3)
+        # Wait for page to fully load
+        time.sleep(2)
 
-        # Wait for search input to be present (ensures page is loaded)
-        self.wait_for_element_visible(self.SEARCH_INPUT, timeout=30)
+        # Wait for search input to be present
+        self.wait_for_element_visible(self.SEARCH_INPUT, timeout=20)
         logger.info("Home page loaded successfully")
         return self
 
@@ -74,29 +77,26 @@ class HomePage(BasePage):
 
         logger.info(f"Searching for product with Enter: {query}")
 
-        # Wait for search input to be visible and interactable (increased timeout for CI/CD)
-        search_input = self.wait_for_element_visible(self.SEARCH_INPUT, timeout=30)
+        # Wait for search input
+        search_input = self.wait_for_element_visible(self.SEARCH_INPUT, timeout=20)
         search_input.clear()
-        time.sleep(0.5)
+        time.sleep(0.3)
 
-        # Type text slowly to let autocomplete work
-        for char in query:
-            search_input.send_keys(char)
-            time.sleep(0.1)  # Small delay between characters
+        # Type text quickly
+        search_input.send_keys(query)
 
-        time.sleep(1)  # Wait for autocomplete suggestions
+        time.sleep(0.5)  # Brief wait for autocomplete
         logger.info("Pressing Enter...")
         self.press_key(self.SEARCH_INPUT, "ENTER")
-        time.sleep(2)  # Wait for navigation to complete
+        time.sleep(1)  # Wait for navigation
 
     def open_catalog(self):
         """Open main catalog menu"""
         import time
 
         logger.info("Opening catalog")
-        # Wait for button to be clickable
-        self.click(self.CATALOG_BUTTON, timeout=15)
-        time.sleep(2)  # Wait for menu to open
+        self.click(self.CATALOG_BUTTON, timeout=10)
+        time.sleep(1)  # Wait for menu to open
 
     def is_catalog_opened(self) -> bool:
         """Check if catalog is opened"""
@@ -140,8 +140,8 @@ class HomePage(BasePage):
         logger.info(f"Changing language to: {language}")
 
         # Click language switcher button
-        self.click(self.LANGUAGE_SWITCHER, timeout=15)
-        time.sleep(1)  # Wait for dropdown to open
+        self.click(self.LANGUAGE_SWITCHER, timeout=10)
+        time.sleep(0.5)  # Wait for dropdown
 
         if language.lower() == "uk":
             self.click(self.LANGUAGE_UK, timeout=10)
@@ -150,7 +150,7 @@ class HomePage(BasePage):
         else:
             raise ValueError(f"Unsupported language: {language}")
 
-        time.sleep(2)  # Wait for page to reload with new language
+        time.sleep(1)  # Wait for page to reload
 
     def get_current_language(self) -> str:
         """
@@ -167,20 +167,31 @@ class HomePage(BasePage):
         import time
 
         logger.info("Opening cart")
-        self.click(self.CART_ICON, timeout=15)
-        time.sleep(2)  # Wait for cart page to load
+        self.click(self.CART_ICON, timeout=10)
+        time.sleep(1)  # Wait for cart modal/page
 
     def get_cart_items_count(self) -> int:
         """
-        Get number of items in cart
+        Get number of items in cart from counter badge
 
         Returns:
             Number of items
         """
-        if self.is_element_visible(self.CART_COUNTER, timeout=2):
+        import time
+
+        time.sleep(1)  # Wait for counter to update
+
+        if self.is_element_visible(self.CART_COUNTER, timeout=5):
             count_text = self.get_text(self.CART_COUNTER)
-            return int(count_text)
-        return 0
+            logger.info(f"Cart counter shows: {count_text}")
+            try:
+                return int(count_text)
+            except ValueError:
+                logger.warning(f"Could not parse cart counter: {count_text}")
+                return 0
+        else:
+            logger.info("Cart counter not visible (likely 0 items)")
+            return 0
 
     def click_logo(self):
         """Click on Rozetka logo to return to home page"""
