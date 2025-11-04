@@ -43,10 +43,10 @@ class HomePage(BasePage):
 
         logger.info("Opening Rozetka home page")
         self.open("/")
-        
+
         # Wait for page to fully load (important for headless mode)
         time.sleep(3)
-        
+
         # Wait for search input to be present (ensures page is loaded)
         self.wait_for_element_visible(self.SEARCH_INPUT, timeout=30)
         logger.info("Home page loaded successfully")

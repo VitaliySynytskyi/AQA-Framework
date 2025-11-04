@@ -178,10 +178,10 @@ class SearchPage(BasePage):
         from selenium.webdriver.support.ui import Select
 
         logger.info(f"Sorting by: {sort_option}")
-        
+
         # Wait for sort dropdown to be present
         time.sleep(2)
-        
+
         # Map sort options to select values
         sort_values = {
             "price_asc": "cheap",
@@ -190,18 +190,18 @@ class SearchPage(BasePage):
             "novelty": "novelty",
             "rating": "rank",
         }
-        
+
         if sort_option not in sort_values:
             raise ValueError(f"Unknown sort option: {sort_option}")
-        
+
         try:
             # Find the select element
             select_element = self.find_element(self.SORT_DROPDOWN, timeout=15)
-            
+
             # Use Selenium Select class
             select = Select(select_element)
             select.select_by_value(sort_values[sort_option])
-            
+
             time.sleep(3)  # Wait for page to reload with sorted results
             logger.info(f"Successfully sorted by {sort_option} (value={sort_values[sort_option]})")
         except Exception as e:
@@ -285,27 +285,27 @@ class SearchPage(BasePage):
         import time
 
         logger.info(f"Adding product at index {index} to cart")
-        
+
         # Wait for add to cart buttons to be visible
         time.sleep(2)  # Give page time to render buttons
         add_buttons = self.find_elements(self.ADD_TO_CART_BUTTONS, timeout=15)
-        
+
         if not add_buttons:
             logger.error("No add to cart buttons found")
             raise Exception("No add to cart buttons found on page")
-        
+
         if 0 <= index < len(add_buttons):
             # Scroll to button and wait
             self.execute_script("arguments[0].scrollIntoView({block: 'center'});", add_buttons[index])
             time.sleep(1)
-            
+
             # Click using JavaScript if regular click fails
             try:
                 add_buttons[index].click()
             except Exception as e:
                 logger.warning(f"Regular click failed: {e}, trying JavaScript click")
                 self.execute_script("arguments[0].click();", add_buttons[index])
-            
+
             time.sleep(2)  # Wait for cart update
             logger.info(f"Successfully clicked add to cart button {index}")
         else:

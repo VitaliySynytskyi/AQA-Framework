@@ -72,7 +72,7 @@ class BrowserManager:
         options.add_argument("--disable-blink-features=AutomationControlled")
         options.add_experimental_option("excludeSwitches", ["enable-logging", "enable-automation"])
         options.add_experimental_option("useAutomationExtension", False)
-        
+
         # Additional anti-bot measures
         prefs = {
             "credentials_enable_service": False,
