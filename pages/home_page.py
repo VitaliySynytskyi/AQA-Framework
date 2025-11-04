@@ -23,11 +23,11 @@ class HomePage(BasePage):
         "rz-search-suggest form button[type='submit']",
     )  # ✓ Nov 2025 - more specific
     LOGO = (By.CSS_SELECTOR, "a[class*='logo']")  # ✓ Updated from parser
-    LANGUAGE_SWITCHER = (By.CSS_SELECTOR, "button[class*='lang']")
+    LANGUAGE_SWITCHER = (By.CSS_SELECTOR, "button[data-testid='lang_btn']")  # ✓ Nov 2025 - data-testid
     LANGUAGE_UK = (By.XPATH, "//button[contains(@class, 'lang')]//a[contains(text(), 'UA')]")
     LANGUAGE_RU = (By.XPATH, "//button[contains(@class, 'lang')]//a[contains(text(), 'RU')]")
-    CATALOG_BUTTON = (By.CSS_SELECTOR, "button[class*='menu']")  # ✓ Updated from parser
-    CART_ICON = (By.CSS_SELECTOR, "a[href*='cart']")
+    CATALOG_BUTTON = (By.CSS_SELECTOR, "button[data-testid='menu_button']")  # ✓ Nov 2025 - data-testid
+    CART_ICON = (By.CSS_SELECTOR, "button[data-testid='header-cart-btn']")  # ✓ Nov 2025 - data-testid
     CART_COUNTER = (By.CSS_SELECTOR, "span[class*='counter']")
     MAIN_CATEGORIES = (By.CSS_SELECTOR, "ul[class*='menu'] > li")
     PROMOTION_BANNER = (By.CSS_SELECTOR, "div[class*='promo']")
@@ -91,8 +91,12 @@ class HomePage(BasePage):
 
     def open_catalog(self):
         """Open main catalog menu"""
+        import time
+
         logger.info("Opening catalog")
-        self.click(self.CATALOG_BUTTON)
+        # Wait for button to be clickable
+        self.click(self.CATALOG_BUTTON, timeout=15)
+        time.sleep(2)  # Wait for menu to open
 
     def is_catalog_opened(self) -> bool:
         """Check if catalog is opened"""
@@ -131,15 +135,22 @@ class HomePage(BasePage):
         Args:
             language: Language code ('uk' or 'ru')
         """
+        import time
+
         logger.info(f"Changing language to: {language}")
-        self.click(self.LANGUAGE_SWITCHER)
+        
+        # Click language switcher button
+        self.click(self.LANGUAGE_SWITCHER, timeout=15)
+        time.sleep(1)  # Wait for dropdown to open
 
         if language.lower() == "uk":
-            self.click(self.LANGUAGE_UK)
+            self.click(self.LANGUAGE_UK, timeout=10)
         elif language.lower() == "ru":
-            self.click(self.LANGUAGE_RU)
+            self.click(self.LANGUAGE_RU, timeout=10)
         else:
             raise ValueError(f"Unsupported language: {language}")
+        
+        time.sleep(2)  # Wait for page to reload with new language
 
     def get_current_language(self) -> str:
         """
@@ -153,8 +164,11 @@ class HomePage(BasePage):
 
     def open_cart(self):
         """Open shopping cart"""
+        import time
+
         logger.info("Opening cart")
-        self.click(self.CART_ICON)
+        self.click(self.CART_ICON, timeout=15)
+        time.sleep(2)  # Wait for cart page to load
 
     def get_cart_items_count(self) -> int:
         """
