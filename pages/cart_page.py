@@ -36,17 +36,20 @@ class CartPage(BasePage):
         super().__init__(driver)
         logger.info("Initialized CartPage")
 
-    def wait_for_cart_load(self, timeout: int = 10) -> bool:
+    def wait_for_cart_load(self, timeout: int = 30) -> bool:
         """
         Wait for cart page to load
 
         Args:
-            timeout: Wait timeout in seconds
+            timeout: Wait timeout in seconds (increased for CI/CD)
 
         Returns:
             True if loaded
         """
+        import time
+
         logger.info("Waiting for cart to load")
+        time.sleep(2)  # Give cart time to initialize
         return self.is_element_visible(self.CART_HEADER, timeout=timeout)
 
     def is_cart_empty(self) -> bool:

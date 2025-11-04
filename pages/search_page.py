@@ -35,7 +35,10 @@ class SearchPage(BasePage):
         "//*[contains(@class, 'empty') or contains(@class, 'nothing') or contains(@class, 'not-found')]",
     )  # ✓ From parser
     SEARCH_QUERY_TEXT = (By.XPATH, "//h1[contains(@class, 'heading') or contains(@class, 'title')]")
-    ADD_TO_CART_BUTTONS = (By.XPATH, "//button[contains(@class, 'buy') or contains(@class, 'cart')]")
+    ADD_TO_CART_BUTTONS = (
+        By.XPATH,
+        "//button[contains(@class, 'buy-button') or contains(text(), 'Купити') or contains(@class, 'product__buy')]",
+    )
     PAGINATION = (By.CSS_SELECTOR, "ul[class*='pagination'], div[class*='pagination']")
     NEXT_PAGE_BUTTON = (By.XPATH, "//a[contains(@class, 'next') or contains(@class, 'forward')]")
     FILTER_SIDEBAR = (By.XPATH, "//div[contains(@class, 'filter') or contains(@class, 'sidebar')]")  # ✓ From parser
@@ -171,8 +174,22 @@ class SearchPage(BasePage):
         Args:
             sort_option: Sort option ('price_asc', 'price_desc', 'popularity', 'novelty', 'action', 'rating')
         """
+        import time
+
         logger.info(f"Sorting by: {sort_option}")
-        self.click(self.SORT_DROPDOWN)
+        
+        # Wait for sort dropdown to be clickable
+        time.sleep(2)
+        
+        try:
+            self.click(self.SORT_DROPDOWN, timeout=10)
+        except Exception as e:
+            logger.warning(f"Failed to click sort dropdown: {e}")
+            # Try finding it differently
+            sort_element = self.find_element(self.SORT_DROPDOWN, timeout=10)
+            self.execute_script("arguments[0].click();", sort_element)
+
+        time.sleep(1)
 
         sort_locators = {
             "price_asc": self.SORT_BY_PRICE_ASC,
@@ -184,7 +201,9 @@ class SearchPage(BasePage):
         }
 
         if sort_option in sort_locators:
-            self.click(sort_locators[sort_option])
+            self.click(sort_locators[sort_option], timeout=10)
+            time.sleep(3)  # Wait for page to reload with sorted results
+            logger.info(f"Successfully sorted by {sort_option}")
         else:
             raise ValueError(f"Unknown sort option: {sort_option}")
 
@@ -262,13 +281,34 @@ class SearchPage(BasePage):
         Args:
             index: Product index (0-based)
         """
+        import time
+
         logger.info(f"Adding product at index {index} to cart")
-        add_buttons = self.find_elements(self.ADD_TO_CART_BUTTONS)
+        
+        # Wait for add to cart buttons to be visible
+        time.sleep(2)  # Give page time to render buttons
+        add_buttons = self.find_elements(self.ADD_TO_CART_BUTTONS, timeout=15)
+        
+        if not add_buttons:
+            logger.error("No add to cart buttons found")
+            raise Exception("No add to cart buttons found on page")
+        
         if 0 <= index < len(add_buttons):
-            self.scroll_to_element(self.ADD_TO_CART_BUTTONS)
-            add_buttons[index].click()
+            # Scroll to button and wait
+            self.execute_script("arguments[0].scrollIntoView({block: 'center'});", add_buttons[index])
+            time.sleep(1)
+            
+            # Click using JavaScript if regular click fails
+            try:
+                add_buttons[index].click()
+            except Exception as e:
+                logger.warning(f"Regular click failed: {e}, trying JavaScript click")
+                self.execute_script("arguments[0].click();", add_buttons[index])
+            
+            time.sleep(2)  # Wait for cart update
+            logger.info(f"Successfully clicked add to cart button {index}")
         else:
-            raise IndexError(f"Product index {index} out of range")
+            raise IndexError(f"Product index {index} out of range (found {len(add_buttons)} buttons)")
 
     def set_price_filter(self, min_price: int = None, max_price: int = None):
         """
