@@ -281,7 +281,7 @@ class SearchPage(BasePage):
         logger.info(f"Adding product at index {index} to cart")
 
         # Wait for add to cart buttons
-        time.sleep(1)
+        time.sleep(2)
         add_buttons = self.find_elements(self.ADD_TO_CART_BUTTONS, timeout=10)
 
         logger.info(f"Found {len(add_buttons)} add to cart buttons")
@@ -298,30 +298,39 @@ class SearchPage(BasePage):
                 "arguments[0].scrollIntoView({block: 'center'});",
                 add_buttons[index],
             )
-            time.sleep(0.5)
+            time.sleep(1)
 
-            # Click button
+            # Log button details
+            button_text = add_buttons[index].text
+            button_class = add_buttons[index].get_attribute("class")
+            logger.info(f"Button text: '{button_text}', class: '{button_class}'")
+
+            # Click button with both methods
             try:
                 logger.info(f"Clicking add to cart button {index}")
-                self.execute_script("arguments[0].click();", add_buttons[index])
-                logger.info("Button clicked, waiting for cart update...")
-                time.sleep(2)  # Wait for cart counter to update
-
-                # Check if modal appeared and close it
-                modal_locator = (By.CSS_SELECTOR, "rz-modal rz-modal-layout")
-                if self.is_element_visible(modal_locator, timeout=3):
-                    logger.info("Modal appeared, closing...")
-                    # Press Escape key to close modal
-                    from selenium.webdriver.common.keys import Keys
-
-                    self.driver.find_element(By.TAG_NAME, "body").send_keys(Keys.ESCAPE)
-                    logger.info("Closed modal via Escape key")
-                    time.sleep(0.5)
-
-                logger.info(f"Successfully added product {index} to cart")
+                # Try regular click first
+                add_buttons[index].click()
+                logger.info("Regular click successful")
             except Exception as e:
-                logger.error(f"Failed to add product to cart: {e}")
-                raise
+                logger.warning(f"Regular click failed: {e}, trying JavaScript")
+                self.execute_script("arguments[0].click();", add_buttons[index])
+                logger.info("JavaScript click executed")
+
+            logger.info("Button clicked, waiting for cart update...")
+            time.sleep(3)  # Increased wait for cart counter update
+
+            # Check if modal appeared and close it
+            modal_locator = (By.CSS_SELECTOR, "rz-modal rz-modal-layout")
+            if self.is_element_visible(modal_locator, timeout=2):
+                logger.info("Modal appeared, closing...")
+                # Press Escape key to close modal
+                from selenium.webdriver.common.keys import Keys
+
+                self.driver.find_element(By.TAG_NAME, "body").send_keys(Keys.ESCAPE)
+                logger.info("Closed modal via Escape key")
+                time.sleep(1)
+
+            logger.info(f"Successfully added product {index} to cart")
         else:
             raise IndexError(f"Product index {index} out of range (found {len(add_buttons)} buttons)")
 

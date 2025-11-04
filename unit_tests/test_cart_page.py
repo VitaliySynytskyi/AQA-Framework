@@ -154,7 +154,7 @@ class TestCartPage:
         mock_find.return_value = [mock_button]
 
         cart_page.increase_item_quantity(0)
-        
+
         # Should use execute_script for click, not regular click
         assert mock_execute.call_count >= 2  # scroll + click
 

@@ -231,7 +231,7 @@ class TestSearchPage:
         mock_visible.return_value = False  # No modal
 
         search_page.add_product_to_cart(0)
-        
+
         # Should use execute_script for click, not regular click
         assert mock_execute.call_count >= 2  # scroll + click
 

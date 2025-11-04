@@ -95,12 +95,45 @@ class HomePage(BasePage):
         import time
 
         logger.info("Opening catalog")
-        self.click(self.CATALOG_BUTTON, timeout=10)
-        time.sleep(1)  # Wait for menu to open
+        
+        # Try clicking catalog button
+        try:
+            catalog_btn = self.find_element(self.CATALOG_BUTTON, timeout=10)
+            logger.info(f"Catalog button found, clicking...")
+            
+            # Try regular click first
+            catalog_btn.click()
+            logger.info("Regular click executed")
+        except Exception as e:
+            logger.warning(f"Regular click failed: {e}, trying JavaScript")
+            catalog_btn = self.find_element(self.CATALOG_BUTTON, timeout=10)
+            self.execute_script("arguments[0].click();", catalog_btn)
+            logger.info("JavaScript click executed")
+        
+        time.sleep(2)  # Increased wait for menu to open
+        logger.info("Catalog opened")
 
     def is_catalog_opened(self) -> bool:
         """Check if catalog is opened"""
-        return self.is_element_visible((By.CSS_SELECTOR, "ul[class*='menu-categories']"), timeout=5)
+        import time
+        
+        time.sleep(1)  # Wait for menu animation
+        
+        # Try multiple selectors
+        selectors = [
+            (By.CSS_SELECTOR, "ul[class*='menu-categories']"),
+            (By.CSS_SELECTOR, "div[class*='menu-wrapper']"),
+            (By.CSS_SELECTOR, "rz-sidebar-fat-menu"),
+            (By.CSS_SELECTOR, "[class*='fat-menu']"),
+        ]
+        
+        for selector in selectors:
+            if self.is_element_visible(selector, timeout=3):
+                logger.info(f"Catalog opened (detected via {selector})")
+                return True
+        
+        logger.warning("Catalog not detected with any selector")
+        return False
 
     def get_main_categories(self) -> list:
         """
@@ -179,7 +212,7 @@ class HomePage(BasePage):
         """
         import time
 
-        time.sleep(1)  # Wait for counter to update
+        time.sleep(2)  # Increased wait for counter to update
 
         if self.is_element_visible(self.CART_COUNTER, timeout=5):
             count_text = self.get_text(self.CART_COUNTER)
