@@ -37,7 +37,7 @@ class SearchPage(BasePage):
     SEARCH_QUERY_TEXT = (By.XPATH, "//h1[contains(@class, 'heading') or contains(@class, 'title')]")
     ADD_TO_CART_BUTTONS = (
         By.XPATH,
-        "//button[contains(@class, 'buy-button') or contains(text(), 'Купити') or contains(@class, 'product__buy')]",
+        "//button[contains(@class, 'buy') or contains(@class, 'cart') or contains(@class, 'basket') or @data-testid='buy-button']",
     )
     PAGINATION = (By.CSS_SELECTOR, "ul[class*='pagination'], div[class*='pagination']")
     NEXT_PAGE_BUTTON = (By.XPATH, "//a[contains(@class, 'next') or contains(@class, 'forward')]")
@@ -290,21 +290,34 @@ class SearchPage(BasePage):
         time.sleep(2)  # Give page time to render buttons
         add_buttons = self.find_elements(self.ADD_TO_CART_BUTTONS, timeout=15)
 
+        logger.info(f"Found {len(add_buttons)} add to cart buttons")
+
         if not add_buttons:
             logger.error("No add to cart buttons found")
+            # Try to log page source for debugging
+            logger.error(f"Current URL: {self.driver.current_url}")
             raise Exception("No add to cart buttons found on page")
 
         if 0 <= index < len(add_buttons):
             # Scroll to button and wait
+            logger.info(f"Scrolling to button {index}")
             self.execute_script("arguments[0].scrollIntoView({block: 'center'});", add_buttons[index])
             time.sleep(1)
 
+            # Check if button is visible
+            is_displayed = add_buttons[index].is_displayed()
+            is_enabled = add_buttons[index].is_enabled()
+            logger.info(f"Button {index} - displayed: {is_displayed}, enabled: {is_enabled}")
+
             # Click using JavaScript if regular click fails
             try:
+                logger.info(f"Attempting regular click on button {index}")
                 add_buttons[index].click()
+                logger.info(f"Regular click successful")
             except Exception as e:
                 logger.warning(f"Regular click failed: {e}, trying JavaScript click")
                 self.execute_script("arguments[0].click();", add_buttons[index])
+                logger.info(f"JavaScript click executed")
 
             time.sleep(2)  # Wait for cart update
             logger.info(f"Successfully clicked add to cart button {index}")

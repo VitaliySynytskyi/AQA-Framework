@@ -18,7 +18,7 @@ def step_add_first_product_to_cart(context):
     logger.info("Step: Adding first product to cart")
     context.search_page.wait_for_results()
     context.search_page.add_product_to_cart(0)
-    time.sleep(2)  # Wait for cart update
+    time.sleep(3)  # Wait for cart update (increased from 2s)
 
 
 @when("I add second product to cart")
@@ -26,7 +26,7 @@ def step_add_second_product_to_cart(context):
     """Add second product to cart"""
     logger.info("Step: Adding second product to cart")
     context.search_page.add_product_to_cart(1)
-    time.sleep(2)  # Wait for cart update
+    time.sleep(3)  # Wait for cart update (increased from 2s)
 
 
 @when("I remember the first product title")
