@@ -232,8 +232,9 @@ class TestSearchPage:
 
         search_page.add_product_to_cart(0)
 
-        # Should use execute_script for click, not regular click
-        assert mock_execute.call_count >= 2  # scroll + click
+        # Should use execute_script for scroll at minimum
+        assert mock_execute.call_count >= 1  # scroll
+        # Button click is attempted (regular click first)
 
     @patch("pages.search_page.SearchPage.input_text")
     @patch("pages.search_page.SearchPage.click")

@@ -95,12 +95,12 @@ class HomePage(BasePage):
         import time
 
         logger.info("Opening catalog")
-        
+
         # Try clicking catalog button
         try:
             catalog_btn = self.find_element(self.CATALOG_BUTTON, timeout=10)
             logger.info(f"Catalog button found, clicking...")
-            
+
             # Try regular click first
             catalog_btn.click()
             logger.info("Regular click executed")
@@ -109,16 +109,16 @@ class HomePage(BasePage):
             catalog_btn = self.find_element(self.CATALOG_BUTTON, timeout=10)
             self.execute_script("arguments[0].click();", catalog_btn)
             logger.info("JavaScript click executed")
-        
+
         time.sleep(2)  # Increased wait for menu to open
         logger.info("Catalog opened")
 
     def is_catalog_opened(self) -> bool:
         """Check if catalog is opened"""
         import time
-        
+
         time.sleep(1)  # Wait for menu animation
-        
+
         # Try multiple selectors
         selectors = [
             (By.CSS_SELECTOR, "ul[class*='menu-categories']"),
@@ -126,12 +126,12 @@ class HomePage(BasePage):
             (By.CSS_SELECTOR, "rz-sidebar-fat-menu"),
             (By.CSS_SELECTOR, "[class*='fat-menu']"),
         ]
-        
+
         for selector in selectors:
             if self.is_element_visible(selector, timeout=3):
                 logger.info(f"Catalog opened (detected via {selector})")
                 return True
-        
+
         logger.warning("Catalog not detected with any selector")
         return False
 

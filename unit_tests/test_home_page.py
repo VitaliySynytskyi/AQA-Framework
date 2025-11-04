@@ -75,9 +75,9 @@ class TestHomePage:
         """Test opening catalog"""
         mock_button = MagicMock()
         mock_find.return_value = mock_button
-        
+
         home_page.open_catalog()
-        
+
         # Should find button and try to click it
         mock_find.assert_called()
 
