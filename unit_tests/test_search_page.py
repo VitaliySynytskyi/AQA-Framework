@@ -100,26 +100,52 @@ class TestSearchPage:
         result = search_page.get_product_prices()
         assert len(result) == 0
 
-    @patch("pages.search_page.SearchPage.click")
-    def test_sort_by_price_asc(self, mock_click, search_page):
+    @patch("pages.search_page.Select")
+    @patch("pages.search_page.SearchPage.find_element")
+    def test_sort_by_price_asc(self, mock_find, mock_select, search_page):
         """Test sorting by price ascending"""
+        mock_element = Mock()
+        mock_find.return_value = mock_element
+        mock_select_instance = Mock()
+        mock_select.return_value = mock_select_instance
+
         search_page.sort_by("price_asc")
-        assert mock_click.call_count == 2
 
-    @patch("pages.search_page.SearchPage.click")
-    def test_sort_by_price_desc(self, mock_click, search_page):
+        mock_find.assert_called_once_with(search_page.SORT_DROPDOWN, timeout=15)
+        mock_select.assert_called_once_with(mock_element)
+        mock_select_instance.select_by_value.assert_called_once_with("cheap")
+
+    @patch("pages.search_page.Select")
+    @patch("pages.search_page.SearchPage.find_element")
+    def test_sort_by_price_desc(self, mock_find, mock_select, search_page):
         """Test sorting by price descending"""
+        mock_element = Mock()
+        mock_find.return_value = mock_element
+        mock_select_instance = Mock()
+        mock_select.return_value = mock_select_instance
+
         search_page.sort_by("price_desc")
-        assert mock_click.call_count == 2
 
-    @patch("pages.search_page.SearchPage.click")
-    def test_sort_by_popularity(self, mock_click, search_page):
+        mock_find.assert_called_once_with(search_page.SORT_DROPDOWN, timeout=15)
+        mock_select.assert_called_once_with(mock_element)
+        mock_select_instance.select_by_value.assert_called_once_with("expensive")
+
+    @patch("pages.search_page.Select")
+    @patch("pages.search_page.SearchPage.find_element")
+    def test_sort_by_popularity(self, mock_find, mock_select, search_page):
         """Test sorting by popularity"""
-        search_page.sort_by("popularity")
-        assert mock_click.call_count == 2
+        mock_element = Mock()
+        mock_find.return_value = mock_element
+        mock_select_instance = Mock()
+        mock_select.return_value = mock_select_instance
 
-    @patch("pages.search_page.SearchPage.click")
-    def test_sort_by_invalid_option(self, mock_click, search_page):
+        search_page.sort_by("popularity")
+
+        mock_find.assert_called_once_with(search_page.SORT_DROPDOWN, timeout=15)
+        mock_select.assert_called_once_with(mock_element)
+        mock_select_instance.select_by_value.assert_called_once_with("popularity")
+
+    def test_sort_by_invalid_option(self, search_page):
         """Test sorting with invalid option raises error"""
         with pytest.raises(ValueError):
             search_page.sort_by("invalid_option")
