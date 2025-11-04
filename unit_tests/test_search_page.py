@@ -132,18 +132,18 @@ class TestSearchPage:
 
     @patch("selenium.webdriver.support.ui.Select")
     @patch("pages.search_page.SearchPage.find_element")
-    def test_sort_by_popularity(self, mock_find, mock_select, search_page):
-        """Test sorting by popularity"""
+    def test_sort_by_rating(self, mock_find, mock_select, search_page):
+        """Test sorting by rating"""
         mock_element = Mock()
         mock_find.return_value = mock_element
         mock_select_instance = Mock()
         mock_select.return_value = mock_select_instance
 
-        search_page.sort_by("popularity")
+        search_page.sort_by("rating")
 
         mock_find.assert_called_once_with(search_page.SORT_DROPDOWN, timeout=10)
         mock_select.assert_called_once_with(mock_element)
-        mock_select_instance.select_by_value.assert_called_once_with("popularity")
+        mock_select_instance.select_by_value.assert_called_once_with("rank")
 
     def test_sort_by_invalid_option(self, search_page):
         """Test sorting with invalid option raises error"""

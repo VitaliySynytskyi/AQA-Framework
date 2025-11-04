@@ -137,14 +137,14 @@ class HomePage(BasePage):
             List of category names
         """
         import time
-        
+
         logger.info("Getting main categories")
-        
+
         # Ensure catalog is open
         if not self.is_catalog_opened():
             self.open_catalog()
             time.sleep(2)  # Wait for menu to fully expand
-        
+
         # Find category links
         categories = self.find_elements(self.MAIN_CATEGORIES)
         category_names = [cat.text.strip() for cat in categories if cat.text.strip()]
@@ -159,14 +159,14 @@ class HomePage(BasePage):
             category_name: Name of category to select
         """
         import time
-        
+
         logger.info(f"Selecting category: {category_name}")
-        
+
         # Ensure catalog is open
         if not self.is_catalog_opened():
             self.open_catalog()
             time.sleep(2)  # Wait for menu to fully expand
-        
+
         # Escape single quotes in XPath by using concat
         if "'" in category_name:
             # Split by ' and use concat
@@ -175,7 +175,7 @@ class HomePage(BasePage):
             category_locator = (By.XPATH, f"//a[contains(@class, 'menu-link') and contains(text(), {xpath_text})]")
         else:
             category_locator = (By.XPATH, f"//a[contains(@class, 'menu-link') and contains(text(), '{category_name}')]")
-        
+
         self.click(category_locator)
 
     def change_language(self, language: str):
@@ -240,7 +240,7 @@ class HomePage(BasePage):
             # Try to find the counter element
             counter_element = self.driver.find_element(*self.CART_COUNTER)
             count_text = counter_element.text.strip()
-            
+
             if count_text:
                 logger.info(f"Cart counter shows: '{count_text}'")
                 try:

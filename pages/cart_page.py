@@ -104,10 +104,10 @@ class CartPage(BasePage):
             Number of items
         """
         import time
-        
+
         # Wait a bit for cart items to render
         time.sleep(1)
-        
+
         if self.is_cart_empty():
             logger.info("Cart is empty (0 items)")
             return 0
@@ -204,10 +204,10 @@ class CartPage(BasePage):
         import time
 
         logger.info(f"Increasing quantity for item at index {index}")
-        
+
         # Wait for cart page to fully load
         time.sleep(2)
-        
+
         increase_buttons = self.find_elements(self.QUANTITY_INCREASE_BUTTONS, timeout=10)
         logger.info(f"Found {len(increase_buttons)} increase buttons")
 

@@ -87,12 +87,12 @@ def step_click_continue_shopping(context):
 def step_verify_cart_items_count(context, count):
     """Verify cart contains specific number of items"""
     import time
-    
+
     logger.info(f"Step: Verifying cart contains {count} items")
-    
+
     # Give extra time for cart counter to update
     time.sleep(2)
-    
+
     actual_count = context.home_page.get_cart_items_count()
     assert actual_count == count, f"Expected {count} items in cart but got {actual_count}"
 
@@ -101,7 +101,7 @@ def step_verify_cart_items_count(context, count):
 def step_verify_product_in_cart(context):
     """Verify product is in cart"""
     import time
-    
+
     logger.info("Step: Verifying product in cart")
     context.home_page.open_cart()
     time.sleep(3)  # Wait for cart to load

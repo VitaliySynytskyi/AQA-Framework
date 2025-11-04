@@ -328,14 +328,13 @@ class SearchPage(BasePage):
                 self.driver.find_element(By.TAG_NAME, "body").send_keys(Keys.ESCAPE)
                 logger.info("Closed modal via Escape key")
                 time.sleep(2)  # Wait for modal to close
-                
+
                 # Wait for modal to fully disappear
                 try:
                     from selenium.webdriver.support.ui import WebDriverWait
                     from selenium.webdriver.support import expected_conditions as EC
-                    WebDriverWait(self.driver, 5).until(
-                        EC.invisibility_of_element_located(modal_locator)
-                    )
+
+                    WebDriverWait(self.driver, 5).until(EC.invisibility_of_element_located(modal_locator))
                     logger.info("Modal closed successfully")
                 except:
                     logger.warning("Modal might still be visible")

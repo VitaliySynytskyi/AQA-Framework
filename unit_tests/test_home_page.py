@@ -121,17 +121,17 @@ class TestHomePage:
         mock_open_catalog.assert_called_once()
         mock_click.assert_called_once()
 
-    @patch("pages.home_page.HomePage.click")
-    def test_change_language_to_uk(self, mock_click, home_page):
+    def test_change_language_to_uk(self, home_page):
         """Test changing language to Ukrainian"""
-        home_page.change_language("uk")
-        assert mock_click.call_count == 2  # Switcher + language option
+        with patch.object(home_page.driver, "get") as mock_get:
+            home_page.change_language("uk")
+            mock_get.assert_called_once_with(home_page.UK_URL)
 
-    @patch("pages.home_page.HomePage.click")
-    def test_change_language_to_ru(self, mock_click, home_page):
+    def test_change_language_to_ru(self, home_page):
         """Test changing language to Russian"""
-        home_page.change_language("ru")
-        assert mock_click.call_count == 2
+        with patch.object(home_page.driver, "get") as mock_get:
+            home_page.change_language("ru")
+            mock_get.assert_called_once_with(home_page.RU_URL)
 
     @patch("pages.home_page.HomePage.click")
     def test_change_language_invalid(self, mock_click, home_page):
@@ -139,15 +139,19 @@ class TestHomePage:
         with pytest.raises(ValueError):
             home_page.change_language("invalid")
 
-    @patch("pages.home_page.HomePage.find_element")
-    def test_get_current_language(self, mock_find, home_page):
-        """Test getting current language"""
-        mock_element = Mock()
-        mock_element.text = "UA"
-        mock_find.return_value = mock_element
+    def test_get_current_language(self, home_page):
+        """Test getting current language from URL"""
+        with patch.object(home_page, "get_current_url", return_value="https://rozetka.com.ua/ua/"):
+            result = home_page.get_current_language()
+            assert result == "uk"
 
-        result = home_page.get_current_language()
-        assert result == "ua"
+        with patch.object(home_page, "get_current_url", return_value="https://rozetka.com.ua/ru/"):
+            result = home_page.get_current_language()
+            assert result == "ru"
+
+        with patch.object(home_page, "get_current_url", return_value="https://rozetka.com.ua/"):
+            result = home_page.get_current_language()
+            assert result == "uk"  # Default
 
     @patch("pages.home_page.HomePage.click")
     def test_open_cart(self, mock_click, home_page):
@@ -155,12 +159,11 @@ class TestHomePage:
         home_page.open_cart()
         mock_click.assert_called_once_with(home_page.CART_ICON, timeout=10)
 
-    @patch("pages.home_page.HomePage.is_element_visible")
-    @patch("pages.home_page.HomePage.get_text")
-    def test_get_cart_items_count_with_items(self, mock_get_text, mock_visible, home_page):
+    def test_get_cart_items_count_with_items(self, home_page):
         """Test getting cart items count when items exist"""
-        mock_visible.return_value = True
-        mock_get_text.return_value = "3"
+        mock_element = Mock()
+        mock_element.text = "3"
+        home_page.driver.find_element = Mock(return_value=mock_element)
 
         result = home_page.get_cart_items_count()
         assert result == 3
