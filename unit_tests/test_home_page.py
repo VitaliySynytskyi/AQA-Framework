@@ -73,7 +73,7 @@ class TestHomePage:
     def test_open_catalog(self, mock_click, home_page):
         """Test opening catalog"""
         home_page.open_catalog()
-        mock_click.assert_called_once_with(home_page.CATALOG_BUTTON)
+        mock_click.assert_called_once_with(home_page.CATALOG_BUTTON, timeout=15)
 
     @patch("pages.home_page.HomePage.is_element_visible")
     def test_is_catalog_opened_true(self, mock_visible, home_page):
@@ -147,7 +147,7 @@ class TestHomePage:
     def test_open_cart(self, mock_click, home_page):
         """Test opening cart"""
         home_page.open_cart()
-        mock_click.assert_called_once_with(home_page.CART_ICON)
+        mock_click.assert_called_once_with(home_page.CART_ICON, timeout=15)
 
     @patch("pages.home_page.HomePage.is_element_visible")
     @patch("pages.home_page.HomePage.get_text")
