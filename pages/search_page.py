@@ -23,13 +23,13 @@ class SearchPage(BasePage):
     PRODUCT_TILES = (By.XPATH, "//*[contains(@class, 'tile') or contains(@class, 'product-card')]")
     PRODUCT_TITLES = (By.XPATH, "//a[contains(@class, 'title') or contains(@class, 'heading')]")
     PRODUCT_PRICES = (By.XPATH, "//*[contains(@class, 'price') and not(contains(@class, 'old'))]")
-    SORT_DROPDOWN = (By.CSS_SELECTOR, "select[class*='sort'], select[class*='select']")  # ✓ From parser
-    SORT_BY_PRICE_ASC = (By.XPATH, "//option[contains(text(), 'дешев') or contains(text(), 'cheap')]")
-    SORT_BY_PRICE_DESC = (By.XPATH, "//option[contains(text(), 'дорог') or contains(text(), 'expensive')]")
-    SORT_BY_POPULARITY = (By.XPATH, "//option[contains(text(), 'опулярн') or contains(text(), 'popular')]")
-    SORT_BY_NOVELTY = (By.XPATH, "//option[contains(text(), 'овин') or contains(text(), 'new')]")
+    SORT_DROPDOWN = (By.ID, "sort")  # ✓ Updated from HTML - select#sort
+    SORT_BY_PRICE_ASC = (By.XPATH, "//option[@value='cheap']")  # ✓ value='cheap'
+    SORT_BY_PRICE_DESC = (By.XPATH, "//option[@value='expensive']")  # ✓ value='expensive'
+    SORT_BY_POPULARITY = (By.XPATH, "//option[@value='popularity' or @value='popular']")
+    SORT_BY_NOVELTY = (By.XPATH, "//option[@value='novelty']")  # ✓ value='novelty'
+    SORT_BY_RATING = (By.XPATH, "//option[@value='rank']")  # ✓ value='rank'
     SORT_BY_ACTION = (By.XPATH, "//option[contains(text(), 'кці') or contains(text(), 'sale')]")
-    SORT_BY_RATING = (By.XPATH, "//option[contains(text(), 'ейтинг') or contains(text(), 'rating')]")
     NO_RESULTS_MESSAGE = (
         By.XPATH,
         "//*[contains(@class, 'empty') or contains(@class, 'nothing') or contains(@class, 'not-found')]",
@@ -175,37 +175,38 @@ class SearchPage(BasePage):
             sort_option: Sort option ('price_asc', 'price_desc', 'popularity', 'novelty', 'action', 'rating')
         """
         import time
+        from selenium.webdriver.support.ui import Select
 
         logger.info(f"Sorting by: {sort_option}")
         
-        # Wait for sort dropdown to be clickable
+        # Wait for sort dropdown to be present
         time.sleep(2)
         
-        try:
-            self.click(self.SORT_DROPDOWN, timeout=10)
-        except Exception as e:
-            logger.warning(f"Failed to click sort dropdown: {e}")
-            # Try finding it differently
-            sort_element = self.find_element(self.SORT_DROPDOWN, timeout=10)
-            self.execute_script("arguments[0].click();", sort_element)
-
-        time.sleep(1)
-
-        sort_locators = {
-            "price_asc": self.SORT_BY_PRICE_ASC,
-            "price_desc": self.SORT_BY_PRICE_DESC,
-            "popularity": self.SORT_BY_POPULARITY,
-            "novelty": self.SORT_BY_NOVELTY,
-            "action": self.SORT_BY_ACTION,
-            "rating": self.SORT_BY_RATING,
+        # Map sort options to select values
+        sort_values = {
+            "price_asc": "cheap",
+            "price_desc": "expensive",
+            "popularity": "popularity",
+            "novelty": "novelty",
+            "rating": "rank",
         }
-
-        if sort_option in sort_locators:
-            self.click(sort_locators[sort_option], timeout=10)
-            time.sleep(3)  # Wait for page to reload with sorted results
-            logger.info(f"Successfully sorted by {sort_option}")
-        else:
+        
+        if sort_option not in sort_values:
             raise ValueError(f"Unknown sort option: {sort_option}")
+        
+        try:
+            # Find the select element
+            select_element = self.find_element(self.SORT_DROPDOWN, timeout=15)
+            
+            # Use Selenium Select class
+            select = Select(select_element)
+            select.select_by_value(sort_values[sort_option])
+            
+            time.sleep(3)  # Wait for page to reload with sorted results
+            logger.info(f"Successfully sorted by {sort_option} (value={sort_values[sort_option]})")
+        except Exception as e:
+            logger.error(f"Failed to sort by {sort_option}: {e}")
+            raise
 
     def is_sorted_by_price_ascending(self) -> bool:
         """
