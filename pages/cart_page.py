@@ -25,7 +25,7 @@ class CartPage(BasePage):
     # Working selector from debug
     CART_ITEM_TITLES = (By.CSS_SELECTOR, ".cart-product__title")
     CART_ITEM_PRICES = (By.CSS_SELECTOR, "rz-cart-product span[class*='price']")
-    # Working selector from debug  
+    # Working selector from debug
     CART_ITEM_QUANTITIES = (
         By.CSS_SELECTOR,
         "rz-cart-product input[formcontrolname='quantity']",
@@ -34,7 +34,7 @@ class CartPage(BasePage):
     CART_ITEM_ACTION_MENU = (By.CSS_SELECTOR, "button[id^='cartProductActions']")
     # Remove button inside menu
     REMOVE_ITEM_BUTTON_IN_MENU = (By.CSS_SELECTOR, "rz-trash-icon > button")
-    
+
     EMPTY_CART_MESSAGE = (By.CSS_SELECTOR, ".cart-dummy__content, .cart-dummy")
     TOTAL_PRICE = (By.CSS_SELECTOR, "div[class*='cart-receipt__sum-price']")
     CHECKOUT_BUTTON = (
@@ -219,25 +219,55 @@ class CartPage(BasePage):
 
         if 0 <= index < len(cart_items):
             cart_item = cart_items[index]
-            
+
             # Scroll to item
             self.execute_script("arguments[0].scrollIntoView({block: 'center'});", cart_item)
             time.sleep(0.5)
-            
+
             # Find action menu button within this cart item
             try:
                 action_menu_button = cart_item.find_element(*self.CART_ITEM_ACTION_MENU)
                 logger.info(f"Found action menu button for item {index}")
-                
+
                 # Click action menu
                 self.execute_script("arguments[0].click();", action_menu_button)
-                time.sleep(1)  # Wait for menu to appear
-                
-                # Find and click remove button in menu
-                remove_button = cart_item.find_element(*self.REMOVE_ITEM_BUTTON_IN_MENU)
-                logger.info(f"Found remove button in menu")
+                time.sleep(1.5)  # Wait for menu to appear
+
+                # Try multiple selectors for remove button (menu might be outside cart item)
+                remove_button = None
+                selectors_to_try = [
+                    (By.CSS_SELECTOR, "rz-trash-icon > button"),  # Original
+                    (By.CSS_SELECTOR, "rz-trash-icon button"),  # Without direct child
+                    (By.CSS_SELECTOR, "button[aria-label*='Видалити']"),  # Aria label
+                    (By.CSS_SELECTOR, "button[aria-label*='видалити']"),  # Lowercase
+                    (By.CSS_SELECTOR, "rz-dropdown-list button"),  # Dropdown list button
+                    (By.CSS_SELECTOR, "li button"),  # List item button
+                ]
+
+                for selector_type, selector_value in selectors_to_try:
+                    try:
+                        # First try within cart item
+                        buttons = cart_item.find_elements(selector_type, selector_value)
+                        visible_buttons = [btn for btn in buttons if btn.is_displayed()]
+
+                        if not visible_buttons:
+                            # Try searching globally (menu might be rendered outside)
+                            buttons = self.find_elements((selector_type, selector_value))
+                            visible_buttons = [btn for btn in buttons if btn.is_displayed()]
+
+                        if visible_buttons:
+                            remove_button = visible_buttons[0]
+                            logger.info(f"Found remove button with selector: {selector_value}")
+                            break
+                    except:
+                        continue
+
+                if not remove_button:
+                    logger.error("Could not find remove button with any selector")
+                    raise Exception("Remove button not found in menu")
+
+                # Click remove button
                 self.execute_script("arguments[0].click();", remove_button)
-                
                 time.sleep(2)  # Wait for removal to complete
                 logger.info(f"Item {index} removed successfully")
             except Exception as e:
@@ -258,7 +288,7 @@ class CartPage(BasePage):
         while not self.is_cart_empty() and attempts < max_attempts:
             attempts += 1
             logger.info(f"Removal attempt {attempts}")
-            
+
             try:
                 self.remove_item(0)
                 time.sleep(1)  # Wait for UI update
@@ -325,13 +355,13 @@ class CartPage(BasePage):
         import time
 
         logger.info(f"Decreasing quantity for item at index {index}")
-        
+
         time.sleep(1)
-        
+
         # Find all decrease buttons
         decrease_buttons = self.find_elements(self.QUANTITY_DECREASE_BUTTONS)
         logger.info(f"Found {len(decrease_buttons)} decrease buttons")
-        
+
         if 0 <= index < len(decrease_buttons):
             # Scroll to button
             self.execute_script(
@@ -339,7 +369,7 @@ class CartPage(BasePage):
                 decrease_buttons[index],
             )
             time.sleep(0.5)
-            
+
             # Click button
             self.execute_script("arguments[0].click();", decrease_buttons[index])
             time.sleep(2)  # Wait for quantity update
@@ -362,11 +392,11 @@ class CartPage(BasePage):
         quantity_inputs = self.find_elements(self.CART_ITEM_QUANTITIES)
         if 0 <= index < len(quantity_inputs):
             input_field = quantity_inputs[index]
-            
+
             # Scroll to input
             self.execute_script("arguments[0].scrollIntoView({block: 'center'});", input_field)
             time.sleep(0.5)
-            
+
             # Clear and set new value
             input_field.click()
             time.sleep(0.3)
@@ -396,7 +426,7 @@ class CartPage(BasePage):
 
         # Try primary selector
         quantity_inputs = self.find_elements(self.CART_ITEM_QUANTITIES)
-        
+
         if not quantity_inputs:
             # Try alternative selectors
             alternative_selectors = [
@@ -415,7 +445,7 @@ class CartPage(BasePage):
             value = quantity_inputs[index].get_attribute("value")
             logger.info(f"Quantity for item {index}: {value}")
             return int(value)
-        
+
         logger.error(f"Item index {index} out of range (found {len(quantity_inputs)} inputs)")
         raise IndexError(f"Item index {index} out of range")
 
@@ -431,7 +461,38 @@ class CartPage(BasePage):
         """
         logger.info(f"Checking if '{product_title}' is in cart")
         titles = self.get_item_titles()
-        return any(product_title.lower() in title.lower() for title in titles)
+        logger.info(f"Cart titles: {titles}")
+
+        # Normalize titles for comparison
+        product_title_normalized = product_title.lower().strip()
+
+        # Try exact match first
+        for title in titles:
+            if product_title_normalized == title.lower().strip():
+                logger.info(f"Found exact match: '{title}'")
+                return True
+
+        # Try partial match (check if cart title contains product title or vice versa)
+        for title in titles:
+            title_normalized = title.lower().strip()
+            # Check both ways - sometimes cart title is shorter, sometimes longer
+            if product_title_normalized in title_normalized or title_normalized in product_title_normalized:
+                logger.info(f"Found partial match: '{title}'")
+                return True
+
+        # Try matching first significant words (product model/name)
+        # Extract first few words that are likely the product identifier
+        product_words = [w for w in product_title_normalized.split() if len(w) > 2][:5]
+        for title in titles:
+            title_words = set(w for w in title.lower().split() if len(w) > 2)
+            # If at least 3 significant words match, consider it a match
+            matching_words = sum(1 for word in product_words if word in title_words)
+            if matching_words >= 3:
+                logger.info(f"Found fuzzy match (matching_words={matching_words}): '{title}'")
+                return True
+
+        logger.info(f"No match found for '{product_title}'")
+        return False
 
     def proceed_to_checkout(self):
         """Proceed to checkout"""
@@ -446,7 +507,7 @@ class CartPage(BasePage):
         import time
 
         logger.info("Continuing shopping")
-        
+
         # Try primary selector
         if self.is_element_visible(self.CONTINUE_SHOPPING_BUTTON, timeout=5):
             self.click(self.CONTINUE_SHOPPING_BUTTON)

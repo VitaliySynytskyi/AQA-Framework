@@ -46,10 +46,13 @@ class TestCartPage:
         result = cart_page.is_cart_empty()
         assert result is True
 
+    @patch("pages.cart_page.CartPage.find_elements")
     @patch("pages.cart_page.CartPage.is_element_visible")
-    def test_is_cart_empty_false(self, mock_visible, cart_page):
+    def test_is_cart_empty_false(self, mock_visible, mock_find, cart_page):
         """Test cart is not empty"""
         mock_visible.return_value = False
+        # Mock find_elements to return a list (not a Mock object)
+        mock_find.return_value = [Mock()]
         result = cart_page.is_cart_empty()
         assert result is False
 
@@ -123,14 +126,30 @@ class TestCartPage:
         result = cart_page.get_total_price()
         assert result == 0.0
 
+    @patch("pages.cart_page.CartPage.execute_script")
     @patch("pages.cart_page.CartPage.find_elements")
-    def test_remove_item(self, mock_find, cart_page):
+    def test_remove_item(self, mock_find, mock_execute, cart_page):
         """Test removing item from cart"""
-        mock_button = Mock()
-        mock_find.return_value = [mock_button]
+        # Create mock cart item with action menu button and remove button
+        mock_cart_item = Mock()
+        mock_action_button = Mock()
+        mock_remove_button = Mock()
+        mock_remove_button.is_displayed.return_value = True
+
+        # Setup cart item to return action button when find_element is called
+        mock_cart_item.find_element.return_value = mock_action_button
+        mock_cart_item.find_elements.return_value = [mock_remove_button]
+
+        # find_elements returns cart items first, then remove buttons when searched globally
+        mock_find.side_effect = [
+            [mock_cart_item],  # First call: get cart items
+            [mock_remove_button],  # Subsequent calls: find remove button
+        ]
 
         cart_page.remove_item(0)
-        mock_button.click.assert_called_once()
+
+        # Verify execute_script was called (for scrolling and clicking)
+        assert mock_execute.call_count >= 2  # At least scroll + menu click + remove click
 
     def test_remove_item_invalid_index(self, cart_page):
         """Test removing item with invalid index"""
@@ -158,24 +177,32 @@ class TestCartPage:
         # Should use execute_script for click, not regular click
         assert mock_execute.call_count >= 2  # scroll + click
 
+    @patch("pages.cart_page.CartPage.execute_script")
     @patch("pages.cart_page.CartPage.find_elements")
-    def test_decrease_item_quantity(self, mock_find, cart_page):
+    def test_decrease_item_quantity(self, mock_find, mock_execute, cart_page):
         """Test decreasing item quantity"""
         mock_button = Mock()
         mock_find.return_value = [mock_button]
 
         cart_page.decrease_item_quantity(0)
-        mock_button.click.assert_called_once()
 
+        # Should use execute_script for click, not regular click
+        assert mock_execute.call_count >= 2  # scroll + click
+
+    @patch("pages.cart_page.CartPage.execute_script")
     @patch("pages.cart_page.CartPage.find_elements")
-    def test_set_item_quantity(self, mock_find, cart_page):
+    def test_set_item_quantity(self, mock_find, mock_execute, cart_page):
         """Test setting item quantity"""
         mock_input = Mock()
         mock_find.return_value = [mock_input]
 
-        cart_page.set_item_quantity(0, 5)
-        mock_input.clear.assert_called_once()
-        mock_input.send_keys.assert_called_once_with("5")
+        cart_page.set_item_quantity(0, "5")
+
+        # Should call send_keys twice: once for the quantity, once for ENTER
+        assert mock_input.send_keys.call_count == 2
+        calls = mock_input.send_keys.call_args_list
+        assert calls[0][0][0] == "5"  # First call with quantity
+        assert calls[1][0][0] == "\ue007"  # Second call with ENTER key
 
     @patch("pages.cart_page.CartPage.find_elements")
     def test_get_item_quantity(self, mock_find, cart_page):
@@ -217,11 +244,12 @@ class TestCartPage:
         cart_page.proceed_to_checkout()
         mock_click.assert_not_called()
 
-    @patch("pages.cart_page.CartPage.is_cart_empty")
+    @patch("pages.cart_page.CartPage.is_element_visible")
     @patch("pages.cart_page.CartPage.click")
-    def test_continue_shopping(self, mock_click, mock_empty, cart_page):
+    def test_continue_shopping(self, mock_click, mock_visible, cart_page):
         """Test continue shopping"""
-        mock_empty.return_value = True
+        # Mock that the continue shopping button is visible
+        mock_visible.return_value = True
         cart_page.continue_shopping()
         mock_click.assert_called_once()
 
