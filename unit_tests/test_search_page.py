@@ -100,7 +100,7 @@ class TestSearchPage:
         result = search_page.get_product_prices()
         assert len(result) == 0
 
-    @patch("pages.search_page.Select")
+    @patch("selenium.webdriver.support.ui.Select")
     @patch("pages.search_page.SearchPage.find_element")
     def test_sort_by_price_asc(self, mock_find, mock_select, search_page):
         """Test sorting by price ascending"""
@@ -115,7 +115,7 @@ class TestSearchPage:
         mock_select.assert_called_once_with(mock_element)
         mock_select_instance.select_by_value.assert_called_once_with("cheap")
 
-    @patch("pages.search_page.Select")
+    @patch("selenium.webdriver.support.ui.Select")
     @patch("pages.search_page.SearchPage.find_element")
     def test_sort_by_price_desc(self, mock_find, mock_select, search_page):
         """Test sorting by price descending"""
@@ -130,7 +130,7 @@ class TestSearchPage:
         mock_select.assert_called_once_with(mock_element)
         mock_select_instance.select_by_value.assert_called_once_with("expensive")
 
-    @patch("pages.search_page.Select")
+    @patch("selenium.webdriver.support.ui.Select")
     @patch("pages.search_page.SearchPage.find_element")
     def test_sort_by_popularity(self, mock_find, mock_select, search_page):
         """Test sorting by popularity"""
