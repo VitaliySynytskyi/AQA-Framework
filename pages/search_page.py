@@ -197,9 +197,7 @@ class SearchPage(BasePage):
             select.select_by_value(sort_values[sort_option])
 
             time.sleep(2)  # Wait for page to reload with sorted results
-            logger.info(
-                f"Successfully sorted by {sort_option} (value={sort_values[sort_option]})"
-            )
+            logger.info(f"Successfully sorted by {sort_option} (value={sort_values[sort_option]})")
         except Exception as e:
             logger.error(f"Failed to sort by {sort_option}: {e}")
             raise
@@ -316,9 +314,7 @@ class SearchPage(BasePage):
                     # Press Escape key to close modal
                     from selenium.webdriver.common.keys import Keys
 
-                    self.driver.find_element(By.TAG_NAME, "body").send_keys(
-                        Keys.ESCAPE
-                    )
+                    self.driver.find_element(By.TAG_NAME, "body").send_keys(Keys.ESCAPE)
                     logger.info("Closed modal via Escape key")
                     time.sleep(0.5)
 
@@ -327,9 +323,7 @@ class SearchPage(BasePage):
                 logger.error(f"Failed to add product to cart: {e}")
                 raise
         else:
-            raise IndexError(
-                f"Product index {index} out of range (found {len(add_buttons)} buttons)"
-            )
+            raise IndexError(f"Product index {index} out of range (found {len(add_buttons)} buttons)")
 
     def set_price_filter(self, min_price: int = None, max_price: int = None):
         """

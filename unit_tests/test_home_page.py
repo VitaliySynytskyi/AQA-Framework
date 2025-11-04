@@ -42,7 +42,7 @@ class TestHomePage:
         """Test opening home page"""
         result = home_page.open_home_page()
         mock_open.assert_called_once_with("/")
-        mock_wait.assert_called_once_with(home_page.SEARCH_INPUT, timeout=30)
+        mock_wait.assert_called_once_with(home_page.SEARCH_INPUT, timeout=20)
         assert result == home_page
 
     @patch("pages.home_page.HomePage.search_product_with_enter")
@@ -65,7 +65,7 @@ class TestHomePage:
         home_page.search_product_with_enter(query)
 
         # Should wait for element visibility, clear it, and press Enter
-        mock_wait.assert_called_with(home_page.SEARCH_INPUT, timeout=30)
+        mock_wait.assert_called_with(home_page.SEARCH_INPUT, timeout=20)
         mock_element.clear.assert_called_once()
         mock_press.assert_called_once_with(home_page.SEARCH_INPUT, "ENTER")
 
@@ -73,7 +73,7 @@ class TestHomePage:
     def test_open_catalog(self, mock_click, home_page):
         """Test opening catalog"""
         home_page.open_catalog()
-        mock_click.assert_called_once_with(home_page.CATALOG_BUTTON, timeout=15)
+        mock_click.assert_called_once_with(home_page.CATALOG_BUTTON, timeout=10)
 
     @patch("pages.home_page.HomePage.is_element_visible")
     def test_is_catalog_opened_true(self, mock_visible, home_page):
@@ -147,7 +147,7 @@ class TestHomePage:
     def test_open_cart(self, mock_click, home_page):
         """Test opening cart"""
         home_page.open_cart()
-        mock_click.assert_called_once_with(home_page.CART_ICON, timeout=15)
+        mock_click.assert_called_once_with(home_page.CART_ICON, timeout=10)
 
     @patch("pages.home_page.HomePage.is_element_visible")
     @patch("pages.home_page.HomePage.get_text")

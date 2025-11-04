@@ -111,7 +111,7 @@ class TestSearchPage:
 
         search_page.sort_by("price_asc")
 
-        mock_find.assert_called_once_with(search_page.SORT_DROPDOWN, timeout=15)
+        mock_find.assert_called_once_with(search_page.SORT_DROPDOWN, timeout=10)
         mock_select.assert_called_once_with(mock_element)
         mock_select_instance.select_by_value.assert_called_once_with("cheap")
 
@@ -126,7 +126,7 @@ class TestSearchPage:
 
         search_page.sort_by("price_desc")
 
-        mock_find.assert_called_once_with(search_page.SORT_DROPDOWN, timeout=15)
+        mock_find.assert_called_once_with(search_page.SORT_DROPDOWN, timeout=10)
         mock_select.assert_called_once_with(mock_element)
         mock_select_instance.select_by_value.assert_called_once_with("expensive")
 
@@ -141,7 +141,7 @@ class TestSearchPage:
 
         search_page.sort_by("popularity")
 
-        mock_find.assert_called_once_with(search_page.SORT_DROPDOWN, timeout=15)
+        mock_find.assert_called_once_with(search_page.SORT_DROPDOWN, timeout=10)
         mock_select.assert_called_once_with(mock_element)
         mock_select_instance.select_by_value.assert_called_once_with("popularity")
 
@@ -221,15 +221,19 @@ class TestSearchPage:
             with pytest.raises(IndexError):
                 search_page.click_product(5)
 
-    @patch("pages.search_page.SearchPage.scroll_to_element")
+    @patch("pages.search_page.SearchPage.is_element_visible")
+    @patch("pages.search_page.SearchPage.execute_script")
     @patch("pages.search_page.SearchPage.find_elements")
-    def test_add_product_to_cart(self, mock_find, mock_scroll, search_page):
+    def test_add_product_to_cart(self, mock_find, mock_execute, mock_visible, search_page):
         """Test adding product to cart"""
         mock_button = Mock()
         mock_find.return_value = [mock_button]
+        mock_visible.return_value = False  # No modal
 
         search_page.add_product_to_cart(0)
-        mock_button.click.assert_called_once()
+        
+        # Should use execute_script for click, not regular click
+        assert mock_execute.call_count >= 2  # scroll + click
 
     @patch("pages.search_page.SearchPage.input_text")
     @patch("pages.search_page.SearchPage.click")

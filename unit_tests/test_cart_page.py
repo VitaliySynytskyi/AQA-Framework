@@ -146,14 +146,17 @@ class TestCartPage:
         cart_page.remove_all_items()
         assert mock_remove.call_count == 2
 
+    @patch("pages.cart_page.CartPage.execute_script")
     @patch("pages.cart_page.CartPage.find_elements")
-    def test_increase_item_quantity(self, mock_find, cart_page):
+    def test_increase_item_quantity(self, mock_find, mock_execute, cart_page):
         """Test increasing item quantity"""
         mock_button = Mock()
         mock_find.return_value = [mock_button]
 
         cart_page.increase_item_quantity(0)
-        mock_button.click.assert_called_once()
+        
+        # Should use execute_script for click, not regular click
+        assert mock_execute.call_count >= 2  # scroll + click
 
     @patch("pages.cart_page.CartPage.find_elements")
     def test_decrease_item_quantity(self, mock_find, cart_page):
