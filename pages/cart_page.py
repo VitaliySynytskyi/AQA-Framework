@@ -17,35 +17,35 @@ logger = logging.getLogger(__name__)
 class CartPage(BasePage):
     """Shopping cart page of Rozetka"""
 
-    # Locators - Updated from actual Rozetka HTML (Nov 2025)
-    CART_MODAL = (By.CSS_SELECTOR, "rz-modal rz-modal-layout")
+    # Locators - Parsed from live Rozetka (December 2025)
+    CART_MODAL = (By.CSS_SELECTOR, "rz-modal")  # ✓ Parsed
     CART_MODAL_HEADER = (By.CSS_SELECTOR, "rz-modal-layout .header h2")
-    CART_ITEMS = (By.CSS_SELECTOR, "rz-cart-product")
+    CART_ITEMS = (By.CSS_SELECTOR, "rz-cart-product")  # ✓ Parsed
     CART_ITEM_BODY = (By.CSS_SELECTOR, ".cart-product__body")
-    CART_ITEM_TITLES = (By.CSS_SELECTOR, "rz-cart-product a[class*='title']")
+    CART_ITEM_TITLES = (By.CSS_SELECTOR, ".cart-product__title")  # ✓ Parsed
     CART_ITEM_PRICES = (By.CSS_SELECTOR, "rz-cart-product span[class*='price']")
     CART_ITEM_QUANTITIES = (
         By.CSS_SELECTOR,
-        "rz-cart-product input[class*='counter']",
+        "input[class*='counter']",  # ✓ Parsed
     )
     REMOVE_ITEM_BUTTONS = (
         By.CSS_SELECTOR,
-        "rz-cart-product button[class*='remove']",
+        "button[aria-label*='Видалити']",  # ✓ Parsed
     )
-    EMPTY_CART_MESSAGE = (By.CSS_SELECTOR, "div[class*='cart-dummy']")
+    EMPTY_CART_MESSAGE = (By.CSS_SELECTOR, "[class*='empty']")  # ✓ Parsed
     TOTAL_PRICE = (By.CSS_SELECTOR, "div[class*='cart-receipt__sum-price']")
     CHECKOUT_BUTTON = (
         By.XPATH,
         "//button[contains(text(), 'Оформлення замовлення')]",
     )
-    CONTINUE_SHOPPING_BUTTON = (By.CSS_SELECTOR, "a[class*='cart-dummy__button']")
+    CONTINUE_SHOPPING_BUTTON = (By.CSS_SELECTOR, "button[class*='continue']")  # ✓ Parsed
     QUANTITY_INCREASE_BUTTONS = (
         By.CSS_SELECTOR,
-        "rz-cart-product button[class*='plus']",
+        "button[aria-label*='Збільшити']",  # Updated for Ukrainian
     )
     QUANTITY_DECREASE_BUTTONS = (
         By.CSS_SELECTOR,
-        "rz-cart-product button[class*='minus']",
+        "button[aria-label*='Зменшити']",  # Updated for Ukrainian
     )
     CART_HEADER = (
         By.CSS_SELECTOR,

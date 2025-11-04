@@ -172,11 +172,18 @@ class HomePage(BasePage):
             # Split by ' and use concat
             parts = category_name.split("'")
             xpath_text = f"concat('{parts[0]}', \"'\", '{parts[1]}')"
-            category_locator = (By.XPATH, f"//a[contains(@class, 'menu-link') and contains(text(), {xpath_text})]")
+            category_locator = (
+                By.XPATH,
+                f"//a[contains(@class, 'menu-link') and contains(text(), {xpath_text})]",
+            )
         else:
-            category_locator = (By.XPATH, f"//a[contains(@class, 'menu-link') and contains(text(), '{category_name}')]")
+            category_locator = (
+                By.XPATH,
+                f"//a[contains(@class, 'menu-link') and contains(text(), '{category_name}')]",
+            )
 
-        self.click(category_locator)
+        self.click(category_locator, timeout=20)  # Increased timeout for slow navigation
+        time.sleep(2)  # Wait for category page to start loading
 
     def change_language(self, language: str):
         """

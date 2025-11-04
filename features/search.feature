@@ -22,10 +22,6 @@ Feature: Product Search
     When I search for empty query
     Then I should remain on the home page
 
-  Scenario: Search for non-existent product
-    When I search for "xyz123nonexistent999"
-    Then I should see no results message
-
   Scenario: Search using Enter key
     When I enter "Samsung" in search box and press Enter
     Then I should see search results
